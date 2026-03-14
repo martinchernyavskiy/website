@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  --breakpoint-*: initial;
+}
+
+@variant dark (&:where(.dark, .dark *));
+
+html {
+  transition: background-color 0.5s ease-in-out, color 0.5s ease-in-out;
+  scroll-behavior: smooth;
+}
+
+@keyframes spring-pounce {
+  0% { transform: translateY(0) scale(1); }
+  30% { transform: translateY(4px) scale(1.15, 0.85); }
+  60% { transform: translateY(-8px) scale(0.95, 1.1); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+.group:hover .animate-pounce {
+  animation: spring-pounce 0.6s cubic-bezier(0.28, 0.84, 0.42, 1);
+}
+
+/* The Waving Hand - Plays once on load */
+@keyframes wave {
+  0% { transform: rotate(0deg); }
+  15% { transform: rotate(14deg); }
+  30% { transform: rotate(-8deg); }
+  45% { transform: rotate(14deg); }
+  60% { transform: rotate(-4deg); }
+  75% { transform: rotate(10deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.animate-wave {
+  display: inline-block;
+  animation: wave 2s ease-in-out;
+  transform-origin: 70% 70%;
+}
+
+.arrow-spring {
+  display: inline-block;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.group-hover\/link .arrow-spring {
+  transform: translateX(6px);
+}
+
+@keyframes cat-playful {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-7deg); }
+  75% { transform: rotate(7deg); }
+}
+
+.animate-cat-playful {
+  animation: cat-playful 4s ease-in-out infinite;
+}
