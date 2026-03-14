@@ -1,0 +1,123 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PhotoDeck from '../components/PhotoDeck'; 
+import DailyTunes from '../components/DailyTunes';
+import TechStack from '../components/TechStack';
+
+const experiences = [
+  {
+    title: "Undergraduate Researcher, Sirius DB",
+    company: "UW–Madison Systems Lab (NVIDIA Collaborative)",
+    date: "Jan 2026 – Present",
+    description: "Developing CUDA-based query execution operators in C++ for an open-source SQL engine designed to accelerate analytical workloads."
+  },
+  {
+    title: "Visiting Researcher, Distributed Data Systems",
+    company: "Peking University, Beijing",
+    date: "Jun 2025 – Aug 2025",
+    description: "Engineered a C++ analytical database engine and optimized columnar storage layouts to achieve a 3x throughput improvement on OLAP workloads."
+  },
+  {
+    title: "Undergraduate Researcher, Info Theory",
+    company: "UW–Madison Department of Mathematics",
+    date: "Aug 2024 – May 2025",
+    description: "Applied Kolmogorov complexity and algorithmic partitioning to establish theoretical lower bounds for spatial data compression."
+  },
+  {
+    title: "Software Engineer",
+    company: "Cardinal Trading Group",
+    date: "Sep 2024 – Jan 2025",
+    description: "Developed high-performance backtesting infrastructure and vectorized data pipelines to process 10M+ rows of financial data."
+  }
+];
+
+const contactLinks = [
+  { label: 'Email Me', href: 'mailto:martin.chernyavskiy@gmail.com' },
+  { label: 'GitHub', href: 'https://github.com/martinchernyavskiy' },
+  { label: 'LinkedIn', href: 'https://linkedin.com/in/martin-chernyavskiy' }
+];
+---
+
+<BaseLayout title="Home | Martin Chernyavskiy">
+  
+  <div class="mt-10 relative">
+    
+    <section class="space-y-12 relative z-10 pb-2">
+      <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-sky-950 dark:text-sky-50">
+        Hello, I'm Martin Chernyavskiy <span class="animate-wave inline-block">👋</span>
+      </h1>
+
+      <div class="grid grid-cols-[256px_1fr] items-center w-full" style="column-gap: 160px;">
+        <div class="relative z-10 flex justify-start">
+          <PhotoDeck client:load /> 
+        </div>
+
+        <div class="min-w-0">
+          <DailyTunes client:load />
+        </div>
+      </div>
+
+      <div class="space-y-2 max-w-2xl">
+        <p class="text-lg text-sky-900/90 dark:text-sky-100/90 leading-relaxed">
+          I’m a <span class="font-bold text-sky-600 dark:text-sky-400">Computer Science sophomore</span> at the University of Wisconsin–Madison. My interests center on database internals, distributed systems, and hardware-level performance optimization. I focus on engineering scalable backend infrastructure, ranging from columnar execution engines to fault-tolerant data pipelines.
+        </p>
+      </div>
+      
+      <div class="flex flex-wrap gap-4 -mt-4 pt-0">
+        {contactLinks.map((link) => (
+          <a 
+            href={link.href}
+            target={link.label !== 'Email Me' ? "_blank" : undefined}
+            class="px-5 py-2.5 rounded-xl border border-sky-200 dark:border-sky-800 
+                   hover:border-sky-400 dark:hover:border-sky-500
+                   hover:text-sky-600 dark:hover:text-sky-300 
+                   hover:-translate-y-1 hover:shadow-lg hover:shadow-sky-500/10
+                   transition-all duration-300 text-sm font-bold 
+                   text-sky-900 dark:text-sky-100 bg-white/40 dark:bg-transparent"
+          >
+            {link.label}
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section id="experience" class="pt-8 border-t border-sky-100 dark:border-sky-900 scroll-mt-24 relative z-10">
+      <h2 class="text-2xl font-extrabold tracking-tight text-sky-950 dark:text-sky-50 mb-6">Experience</h2>
+      <div class="space-y-4">
+        {experiences.map((exp) => (
+          <div class="group border border-sky-200 dark:border-sky-800 rounded-2xl p-6 
+                      hover:bg-white dark:hover:bg-sky-900/30 
+                      hover:border-sky-400 dark:hover:border-sky-500
+                      hover:shadow-xl hover:shadow-sky-500/5
+                      transition-all duration-300">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-1">
+              <h3 class="text-lg font-bold tracking-tight text-sky-950 dark:text-sky-100">
+                {exp.title}
+              </h3>
+              <span class="text-sm text-slate-500 dark:text-slate-400 font-semibold">
+                {exp.date}
+              </span>
+            </div>
+            
+            <p class="text-sky-600 dark:text-sky-400 text-sm font-bold mb-3">
+              {exp.company}
+            </p>
+            
+            <p class="text-sky-800/90 dark:text-sky-200/90 leading-relaxed text-sm">
+              {exp.description}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section id="skills" class="pt-8 border-t border-sky-100 dark:border-sky-900 scroll-mt-24 relative z-10">
+      <h2 class="text-2xl font-extrabold tracking-tight text-sky-950 dark:text-sky-50 mb-6">Skills & Technologies</h2>
+      <div class="pt-2">
+        <TechStack client:load />
+      </div>
+    </section>
+
+  </div>
+</BaseLayout>
