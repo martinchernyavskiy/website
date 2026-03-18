@@ -40,19 +40,19 @@ const contactLinks = [
 
 <BaseLayout title="Home | Martin Chernyavskiy">
   
-  <div class="mt-10 relative">
+  <div class="mt-10 relative overflow-x-hidden">
     
     <section class="space-y-12 relative z-10 pb-2">
-      <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-sky-950 dark:text-sky-50">
+      <h1 class="text-4xl font-extrabold tracking-tight text-sky-950 dark:text-sky-50">
         Hello, I'm Martin Chernyavskiy <span class="animate-wave inline-block">👋</span>
       </h1>
 
-      <div class="grid grid-cols-[256px_1fr] items-center w-full" style="column-gap: 160px;">
-        <div class="relative z-10 flex justify-start">
+      <div class="grid grid-cols-1 md:grid-cols-[300px_1fr] items-center w-full gap-12 md:gap-[120px]">
+        <div class="relative z-10 flex justify-center md:justify-start md:ml-4 lg:ml-8">
           <PhotoDeck client:load /> 
         </div>
 
-        <div class="min-w-0">
+        <div class="min-w-0 w-full max-w-sm mx-auto md:mx-0">
           <DailyTunes client:load />
         </div>
       </div>

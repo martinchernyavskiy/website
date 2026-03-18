@@ -25,6 +25,19 @@ const { title = "Martin Chernyavskiy" } = Astro.props;
       html {
         scroll-behavior: smooth;
       }
+      body {
+        overflow-x: hidden;
+      }
+      #mobile-menu {
+        transition: max-height 0.3s ease-in-out, opacity 0.2s ease-in-out;
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+      }
+      #mobile-menu.open {
+        max-height: 500px;
+        opacity: 1;
+      }
     </style>
   </head>
   
@@ -36,20 +49,13 @@ const { title = "Martin Chernyavskiy" } = Astro.props;
       <div class="max-w-4xl mx-auto px-6 py-4 flex flex-row justify-between items-center">
         
         <a href="/" class="group flex items-center gap-2 text-xl font-bold tracking-tight text-sky-950 dark:text-sky-50">
-          <CatFace 
-            size={28} 
-            className="text-sky-600 dark:text-sky-400 animate-pounce" 
-            client:load 
-          />
+          <CatFace size={28} className="text-sky-600 dark:text-sky-400 animate-pounce" client:load />
           <span class="group-hover:text-sky-700 dark:group-hover:text-sky-300 transition-colors">Martin.</span>
         </a>
 
-        <nav class="flex items-center gap-1 text-sm font-medium text-sky-700 dark:text-sky-300">
+        <nav class="hidden md:flex items-center gap-1 text-sm font-medium text-sky-700 dark:text-sky-300 whitespace-nowrap">
           {['Experience', 'Projects', 'Blog', 'Bookshelf', 'Classes'].map((label) => (
-            <a 
-              href={label === 'Experience' ? "/#experience" : `/${label.toLowerCase()}`} 
-              class="px-3 py-2 rounded-lg transition-all duration-300 hover:bg-sky-500/10 hover:text-sky-600 dark:hover:bg-sky-100/10 dark:hover:text-sky-100"
-            >
+            <a href={label === 'Experience' ? "/#experience" : `/${label.toLowerCase()}`} class="px-3 py-2 rounded-lg transition-all duration-300 hover:bg-sky-500/10 hover:text-sky-600 dark:hover:bg-sky-100/10 dark:hover:text-sky-100">
               {label}
             </a>
           ))}
@@ -57,6 +63,25 @@ const { title = "Martin Chernyavskiy" } = Astro.props;
             <ThemeToggle client:load />
           </div>
         </nav>
+
+        <div class="flex items-center gap-2 md:hidden">
+          <ThemeToggle client:load />
+          <button id="menu-btn" class="p-2 text-sky-900 dark:text-sky-100" aria-label="Toggle Menu">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="mobile-menu" class="md:hidden border-t border-sky-200 dark:border-sky-800 bg-sky-50/95 dark:bg-sky-950/95 backdrop-blur-xl">
+        <div class="flex flex-col p-6 space-y-2">
+          {['Experience', 'Projects', 'Blog', 'Bookshelf', 'Classes'].map((label) => (
+            <a href={label === 'Experience' ? "/#experience" : `/${label.toLowerCase()}`} class="px-4 py-3 rounded-xl text-lg text-sky-900 dark:text-sky-100 font-bold hover:bg-sky-500/10 transition-colors">
+              {label}
+            </a>
+          ))}
+        </div>
       </div>
     </header>
 
@@ -77,5 +102,18 @@ const { title = "Martin Chernyavskiy" } = Astro.props;
         </div>
       </div>
     </footer>
+
+    <script>
+      const btn = document.getElementById('menu-btn');
+      const menu = document.getElementById('mobile-menu');
+      
+      btn?.addEventListener('click', () => {
+        menu?.classList.toggle('open');
+      });
+
+      menu?.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => menu.classList.remove('open'));
+      });
+    </script>
   </body>
 </html>

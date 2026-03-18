@@ -3,9 +3,10 @@ const client_secret = import.meta.env.SPOTIFY_CLIENT_SECRET;
 const refresh_token = import.meta.env.SPOTIFY_REFRESH_TOKEN;
 
 const basic = btoa(`${client_id}:${client_secret}`);
+
 const TOKEN_ENDPOINT = `https://accounts.spotify.com/api/token`;
 const NOW_PLAYING_ENDPOINT = `https://api.spotify.com/v1/me/player/currently-playing`;
-const RECENTLY_PLAYED_ENDPOINT = `https://api.spotify.com/v1/me/player/recently-played?limit=10`;
+const RECENTLY_PLAYED_ENDPOINT = `https://api.spotify.com/v1/me/player/recently-played`;
 
 const getAccessToken = async () => {
   const response = await fetch(TOKEN_ENDPOINT, {

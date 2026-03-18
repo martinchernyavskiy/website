@@ -1,14 +1,12 @@
 import React from 'react';
 import { 
-  SiCplusplus, SiPython, SiGo, SiPostgresql, SiGnubash, 
+  SiCplusplus, SiPython, SiPostgresql, SiGnubash, 
   SiApachespark, SiApachekafka, SiApachecassandra, SiApachehadoop,
-  SiLinux, SiDocker, SiGit, SiNvidia, SiApache, SiCmake,
-  SiPytest, SiGithub, SiGoogle 
+  SiLinux, SiDocker, SiGit, SiNvidia, SiApache, SiCmake, SiGoogle
 } from 'react-icons/si';
-import { FaJava } from 'react-icons/fa';
 import { 
   TbApi, TbSettingsAutomation, TbTargetArrow, TbDatabaseSearch, 
-  TbHierarchy, TbBolt, TbShieldCheck, TbActivity, TbTestPipe, TbGlobe, TbInfinity
+  TbHierarchy, TbBolt, TbShieldCheck, TbActivity, TbTestPipe, TbInfinity, TbServer
 } from 'react-icons/tb';
 
 const SkillGroup = ({ title, children }: { title: string, children: React.ReactNode }) => (
@@ -32,44 +30,41 @@ export default function TechStack() {
     <div className="grid gap-6">
       <SkillGroup title="Systems & Performance">
         <IconBadge icon={SiCplusplus} label="C++" />
-        <IconBadge icon={SiNvidia} label="CUDA" />
-        <IconBadge icon={TbSettingsAutomation} label="SIMD" />
+        <IconBadge icon={SiNvidia} label="CUDA/RAPIDS" />
+        <IconBadge icon={TbSettingsAutomation} label="SIMD/AVX-512" />
         <IconBadge icon={TbShieldCheck} label="RAII" />
+        <IconBadge icon={SiLinux} label="Linux Internals" />
+        <IconBadge icon={TbActivity} label="perf" />
+        <IconBadge icon={TbTargetArrow} label="Nsight Systems" />
         <IconBadge icon={SiCmake} label="CMake" />
-        <IconBadge icon={TbActivity} label="Perf" />
-        <IconBadge icon={TbTargetArrow} label="Valgrind" />
       </SkillGroup>
 
       <SkillGroup title="Data Systems & Storage">
-        <IconBadge icon={SiPostgresql} label="SQL" />
-        <IconBadge icon={SiApache} label="Apache Arrow" />
         <IconBadge icon={TbBolt} label="Vectorized Execution" />
+        <IconBadge icon={SiApache} label="Apache Arrow" />
         <IconBadge icon={TbDatabaseSearch} label="Query Optimization" />
+        <IconBadge icon={TbServer} label="Buffer Pool Mgmt" />
         <IconBadge icon={TbHierarchy} label="B+ Trees" />
         <IconBadge icon={TbHierarchy} label="LSM Trees" />
+        <IconBadge icon={SiPostgresql} label="SQL" />
       </SkillGroup>
 
       <SkillGroup title="Distributed Systems">
-        <IconBadge icon={SiGo} label="Go" />
-        <IconBadge icon={TbApi} label="gRPC" />
-        <IconBadge icon={SiGoogle} label="Protobuf" />
-        <IconBadge icon={SiApachespark} label="Spark" />
+        <IconBadge icon={SiApachespark} label="Apache Spark" />
         <IconBadge icon={SiApachekafka} label="Kafka" />
         <IconBadge icon={SiApachecassandra} label="Cassandra" />
         <IconBadge icon={SiApachehadoop} label="HDFS" />
+        <IconBadge icon={TbApi} label="gRPC" />
+        <IconBadge icon={SiGoogle} label="Protobuf" />
       </SkillGroup>
 
       <SkillGroup title="Backend & Tooling">
-        <IconBadge icon={TbGlobe} label="REST" />
-        <IconBadge icon={TbTestPipe} label="GTest" />
-        <IconBadge icon={SiPytest} label="Pytest" />
         <IconBadge icon={SiPython} label="Python" />
-        <IconBadge icon={FaJava} label="Java" />
+        <IconBadge icon={TbTestPipe} label="GTest" />
         <IconBadge icon={SiDocker} label="Docker" />
         <IconBadge icon={TbInfinity} label="CI/CD" />
-        <IconBadge icon={SiGit} label="Git" />
         <IconBadge icon={SiGnubash} label="Bash" />
-        <IconBadge icon={SiLinux} label="Linux" />
+        <IconBadge icon={SiGit} label="Git" />
       </SkillGroup>
     </div>
   );
