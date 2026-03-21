@@ -4,6 +4,7 @@ import ThemeToggle from '../components/ThemeToggle';
 import FooterCat from '../components/FooterCat';
 import CatFace from '../components/CatFace'; 
 import BackgroundClouds from '../components/BackgroundClouds.astro';
+import { ClientRouter } from 'astro:transitions';
 
 const { title = "Martin Chernyavskiy" } = Astro.props;
 ---
@@ -13,20 +14,38 @@ const { title = "Martin Chernyavskiy" } = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
+    
+    <meta name="description" content="Computer Science student at UW-Madison. Specialized in database internals, distributed systems, and hardware-level performance optimization." />
+    <meta property="og:title" content="Martin Chernyavskiy | Systems & Databases" />
+    <meta property="og:description" content="CS sophomore at UW-Madison focusing on backend infrastructure and high-performance execution engines." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://martinchernyavskiy.com" />
+    <meta name="twitter:card" content="summary_large_image" />
+
     <script is:inline>
-      if (typeof localStorage !== 'undefined' && localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+      const setTheme = () => {
+        const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      };
+      setTheme();
+      document.addEventListener('astro:after-swap', setTheme);
     </script>
+    
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    
     <style is:global>
       html {
         scroll-behavior: smooth;
       }
       body {
         overflow-x: hidden;
+      }
+      html[data-astro-transition] * {
+        transition: none !important;
       }
       #mobile-menu {
         transition: max-height 0.3s ease-in-out, opacity 0.2s ease-in-out;
@@ -39,22 +58,22 @@ const { title = "Martin Chernyavskiy" } = Astro.props;
         opacity: 1;
       }
     </style>
+
+    <ClientRouter />
   </head>
   
   <body class="bg-sky-50 text-sky-950 dark:bg-sky-950 dark:text-sky-100 font-sans min-h-screen flex flex-col relative antialiased transition-colors duration-300">
-    
     <BackgroundClouds />
     
     <header class="sticky top-0 z-50 w-full backdrop-blur-md bg-sky-50/80 dark:bg-sky-950/80 border-b border-sky-200/50 dark:border-sky-800/50 transition-colors duration-300">
       <div class="max-w-4xl mx-auto px-6 py-4 flex flex-row justify-between items-center">
-        
         <a href="/" class="group flex items-center gap-2 text-xl font-bold tracking-tight text-sky-950 dark:text-sky-50">
           <CatFace size={28} className="text-sky-600 dark:text-sky-400 animate-pounce" client:load />
           <span class="group-hover:text-sky-700 dark:group-hover:text-sky-300 transition-colors">Martin.</span>
         </a>
 
         <nav class="hidden md:flex items-center gap-1 text-sm font-medium text-sky-700 dark:text-sky-300 whitespace-nowrap">
-          {['Experience', 'Projects', 'Blog', 'Bookshelf', 'Classes'].map((label) => (
+          {['Experience', 'Blog', 'Bookshelf', 'Classes'].map((label) => (
             <a href={label === 'Experience' ? "/#experience" : `/${label.toLowerCase()}`} class="px-3 py-2 rounded-lg transition-all duration-300 hover:bg-sky-500/10 hover:text-sky-600 dark:hover:bg-sky-100/10 dark:hover:text-sky-100">
               {label}
             </a>
@@ -76,7 +95,7 @@ const { title = "Martin Chernyavskiy" } = Astro.props;
 
       <div id="mobile-menu" class="md:hidden border-t border-sky-200 dark:border-sky-800 bg-sky-50/95 dark:bg-sky-950/95 backdrop-blur-xl">
         <div class="flex flex-col p-6 space-y-2">
-          {['Experience', 'Projects', 'Blog', 'Bookshelf', 'Classes'].map((label) => (
+          {['Experience', 'Blog', 'Bookshelf', 'Classes'].map((label) => (
             <a href={label === 'Experience' ? "/#experience" : `/${label.toLowerCase()}`} class="px-4 py-3 rounded-xl text-lg text-sky-900 dark:text-sky-100 font-bold hover:bg-sky-500/10 transition-colors">
               {label}
             </a>
@@ -89,7 +108,7 @@ const { title = "Martin Chernyavskiy" } = Astro.props;
       <slot />
     </main>
 
-    <footer class="w-full mt-10 relative z-10">
+    <footer class="w-full mt-2 relative z-10">
       <div class="max-w-4xl mx-auto relative">
         <div class="w-full border-t border-sky-200 dark:border-sky-800"></div>
         <div class="absolute top-0 right-10 -translate-y-full">
@@ -104,16 +123,14 @@ const { title = "Martin Chernyavskiy" } = Astro.props;
     </footer>
 
     <script>
-      const btn = document.getElementById('menu-btn');
-      const menu = document.getElementById('mobile-menu');
-      
-      btn?.addEventListener('click', () => {
-        menu?.classList.toggle('open');
-      });
-
-      menu?.querySelectorAll('a').forEach(link => {
-        link.addEventListener('click', () => menu.classList.remove('open'));
-      });
+      const setupMenu = () => {
+        const btn = document.getElementById('menu-btn');
+        const menu = document.getElementById('mobile-menu');
+        btn?.addEventListener('click', () => menu?.classList.toggle('open'));
+        menu?.querySelectorAll('a').forEach(link => link.addEventListener('click', () => menu.classList.remove('open')));
+      };
+      setupMenu();
+      document.addEventListener('astro:after-swap', setupMenu);
     </script>
   </body>
 </html>
