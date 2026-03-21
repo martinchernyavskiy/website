@@ -1,12 +1,66 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import CourseList from '../components/CourseList';
+import CourseGraph from '../components/CourseGraph';
 ---
 
-<BaseLayout title="Classes | Martin Chernyavskiy">
-  <div class="flex flex-col items-center justify-center py-20 text-center">
-    <h1 class="text-4xl font-extrabold text-sky-950 dark:text-sky-50 mb-4">Classes</h1>
-    <p class="text-sky-600 dark:text-sky-400 font-mono text-sm tracking-widest uppercase">
-      This page is currently under construction.
-    </p>
+<BaseLayout title="Courses | Martin Chernyavskiy">
+  <div class="mt-10 space-y-10 relative z-10">
+
+    <div class="space-y-3 max-w-2xl">
+      <h1 class="text-4xl font-extrabold tracking-tight text-sky-950 dark:text-sky-50">
+        Coursework
+      </h1>
+      <p class="text-lg text-sky-900/80 dark:text-sky-100/70 leading-relaxed">
+        Courses taken at the University of Wisconsin–Madison, grouped by theme. Click any card for a quick take.
+      </p>
+    </div>
+
+    <div class="border-t border-sky-100 dark:border-sky-900 pt-8 space-y-6">
+      <div class="flex gap-2">
+        <button id="btn-list"
+          class="cursor-pointer px-4 py-1.5 rounded-lg text-xs font-mono font-bold uppercase tracking-widest transition-all duration-200
+                 bg-sky-100 dark:bg-sky-900 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-700">
+          List
+        </button>
+        <button id="btn-graph"
+          class="cursor-pointer px-4 py-1.5 rounded-lg text-xs font-mono font-bold uppercase tracking-widest transition-all duration-200
+                 text-sky-400 dark:text-sky-600 border border-sky-100 dark:border-sky-900 hover:border-sky-300 dark:hover:border-sky-700">
+          Graph
+        </button>
+      </div>
+
+      <div id="panel-list">
+        <CourseList client:load />
+      </div>
+      <div id="panel-graph" class="hidden">
+        <CourseGraph client:load />
+      </div>
+    </div>
+
+
   </div>
 </BaseLayout>
+
+<script>
+  function initToggle() {
+    const btnList    = document.getElementById('btn-list');
+    const btnGraph   = document.getElementById('btn-graph');
+    const panelList  = document.getElementById('panel-list');
+    const panelGraph = document.getElementById('panel-graph');
+    if (!btnList || !btnGraph || !panelList || !panelGraph) return;
+    const active   = ['bg-sky-100', 'dark:bg-sky-900', 'text-sky-700', 'dark:text-sky-300', 'border-sky-200', 'dark:border-sky-700'];
+    const inactive = ['text-sky-400', 'dark:text-sky-600', 'border-sky-100', 'dark:border-sky-900'];
+    const setView = (view: 'list' | 'graph') => {
+      const isGraph = view === 'graph';
+      panelList.classList.toggle('hidden', isGraph);
+      panelGraph.classList.toggle('hidden', !isGraph);
+      const on = isGraph ? btnGraph : btnList, off = isGraph ? btnList : btnGraph;
+      on.classList.add(...active);   on.classList.remove(...inactive);
+      off.classList.remove(...active); off.classList.add(...inactive);
+    };
+    btnList.addEventListener('click',  () => setView('list'));
+    btnGraph.addEventListener('click', () => setView('graph'));
+  }
+  document.addEventListener('astro:page-load', initToggle);
+</script>
