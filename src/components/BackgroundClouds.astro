@@ -1,71 +1,40 @@
 ---
-// Bezier paths for perfect bubbly clouds
+import Cloud from './Cloud';
+
 const cloudPaths = [
-  // Classic Bubbly
   "M 35 60 C 15 60, 15 35, 35 35 C 35 15, 65 15, 75 30 C 85 10, 115 10, 120 35 C 140 35, 140 60, 120 60 Z",
-  // Elongated / Wide
   "M 30 50 C 10 50, 10 25, 30 25 C 30 10, 60 10, 70 25 C 80 15, 100 15, 110 25 C 120 10, 150 10, 155 30 C 175 30, 175 50, 155 50 Z",
-  // Compact / Tall
   "M 40 70 C 20 70, 20 45, 40 45 C 40 20, 70 20, 80 35 C 90 25, 110 25, 115 45 C 135 45, 135 70, 115 70 Z"
 ];
 
-// Increased to 16 for better coverage
-const ZONES = 16; 
-
-// The Golden Ratio conjugate. Used to mathematically scatter items 
-// across a continuous loop without them ever bunching up.
+const ZONES = 10;
 const GOLDEN_RATIO = 0.61803398875;
 
 const clouds = Array.from({ length: ZONES }).map((_, index) => {
-  const zoneHeight = 100 / ZONES;
-  
-  // Stratified vertical positioning
-  const top = Math.floor(zoneHeight * index + (Math.random() * (zoneHeight * 0.4))); 
-
+  const zoneHeight = 75 / ZONES;
+  const top = Math.floor(16 + (zoneHeight * index) + (Math.random() * (zoneHeight * 0.3)));
   const path = cloudPaths[index % cloudPaths.length];
-
-  // Randomize width for depth (140px to 220px)
-  const size = Math.floor(Math.random() * 80) + 140; 
-
-  // CONSTANT duration. If they all move at exactly the same speed, 
-  // they can never catch up to each other to form clumps.
-  const duration = 120; 
-
-  // Multiply index by the golden ratio to get a perfectly scattered starting phase (0.0 to 1.0).
-  // This guarantees there is always a cloud evenly spaced on the screen.
+  const size = Math.floor(Math.random() * 60) + 130;
+  const duration = 130 + (Math.random() * 40);
   const phase = (index * GOLDEN_RATIO) % 1;
   const delay = -(duration * phase);
-
-  const colorClass = Math.random() > 0.5 
-    ? 'text-sky-300 dark:text-sky-700 opacity-20' 
-    : 'text-sky-400 dark:text-sky-600 opacity-[0.15]';
+  const colorClass = Math.random() > 0.5
+    ? 'text-sky-400/10 dark:text-sky-600/10'
+    : 'text-sky-300/10 dark:text-sky-500/10';
 
   return { top, size, duration, delay, colorClass, path };
 });
 ---
 
-<div class="absolute inset-0 overflow-hidden pointer-events-none z-[-1]" aria-hidden="true">
+<div class="absolute inset-0 overflow-hidden pointer-events-none z-[4]" aria-hidden="true">
   {clouds.map((cloud) => (
-    <div 
-      class={`absolute ${cloud.colorClass}`}
-      style={`
-        top: ${cloud.top}%; 
-        left: -20vw;
-        width: ${cloud.size}px;
-        animation: drift ${cloud.duration}s linear infinite; 
-        animation-delay: ${cloud.delay}s;
-      `}
-    >
-      <svg viewBox="0 0 180 80" class="fill-current w-full h-auto" xmlns="http://www.w3.org/2000/svg">
-        <path d={cloud.path} />
-      </svg>
-    </div>
+    <Cloud client:load {...cloud} />
   ))}
 </div>
 
-<style>
+<style is:global>
   @keyframes drift {
-    0% { transform: translateX(0); }
+    0%   { transform: translateX(0); }
     100% { transform: translateX(140vw); }
   }
 </style>

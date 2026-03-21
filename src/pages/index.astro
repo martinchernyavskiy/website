@@ -9,25 +9,25 @@ const experiences = [
     title: "Undergraduate Researcher, Sirius DB",
     company: "UW–Madison Systems Lab (NVIDIA Collaborative)",
     date: "Jan 2026 – Present",
-    description: "Developing CUDA-based query execution operators in C++ for an open-source SQL engine designed to accelerate analytical workloads."
+    description: "Developing C++ query execution pipelines for an NVIDIA-collaborative GPU-accelerated SQL engine, optimizing analytical workload performance using the RAPIDS ecosystem."
   },
   {
     title: "Visiting Researcher, Distributed Data Systems",
     company: "Peking University, Beijing",
     date: "Jun 2025 – Aug 2025",
-    description: "Engineered a C++ analytical database engine and optimized columnar storage layouts to achieve a 3x throughput improvement on OLAP workloads."
+    description: "Engineered a C++ analytical storage prototype migrating from row-oriented to vectorized execution, achieving a 3x improvement in query scan performance on TPC-H benchmarks."
   },
   {
     title: "Undergraduate Researcher, Info Theory",
     company: "UW–Madison Department of Mathematics",
     date: "Aug 2024 – May 2025",
-    description: "Applied Kolmogorov complexity and algorithmic partitioning to establish theoretical lower bounds for spatial data compression."
+    description: "Applied algorithmic information theory and Kolmogorov complexity to analyze theoretical compression limits relevant to database storage systems."
   },
   {
     title: "Software Engineer",
     company: "Cardinal Trading Group",
     date: "Sep 2024 – Jan 2025",
-    description: "Developed high-performance backtesting infrastructure and vectorized data pipelines to process 10M+ rows of financial data."
+    description: "Built high-performance Python backtesting and ETL infrastructure for a quantitative trading organization, reducing execution time from 3 minutes to under 30 seconds."
   }
 ];
 
@@ -40,7 +40,7 @@ const contactLinks = [
 
 <BaseLayout title="Home | Martin Chernyavskiy">
   
-  <div class="mt-10 relative overflow-x-hidden">
+  <div class="mt-10 relative">
     
     <section class="space-y-12 relative z-10 pb-2">
       <h1 class="text-4xl font-extrabold tracking-tight text-sky-950 dark:text-sky-50">
@@ -48,8 +48,8 @@ const contactLinks = [
       </h1>
 
       <div class="grid grid-cols-1 md:grid-cols-[300px_1fr] items-center w-full gap-12 md:gap-[120px]">
-        <div class="relative z-10 flex justify-center md:justify-start md:ml-4 lg:ml-8">
-          <PhotoDeck client:load /> 
+        <div class="relative z-10 flex justify-center md:justify-start md:ml-0 lg:ml-4 p-4 bg-sky-50 dark:bg-sky-950 rounded-2xl">
+          <PhotoDeck client:load />
         </div>
 
         <div class="min-w-0 w-full max-w-sm mx-auto md:mx-0">
@@ -57,40 +57,42 @@ const contactLinks = [
         </div>
       </div>
 
-      <div class="space-y-2 max-w-2xl">
+      <div class="space-y-6 max-w-2xl">
         <p class="text-lg text-sky-900/90 dark:text-sky-100/90 leading-relaxed">
-          I’m a <span class="font-bold text-sky-600 dark:text-sky-400">Computer Science sophomore</span> at the University of Wisconsin–Madison. My interests center on database internals, distributed systems, and hardware-level performance optimization. I focus on engineering scalable backend infrastructure, ranging from columnar execution engines to fault-tolerant data pipelines.
+          I'm a <span class="font-bold text-sky-600 dark:text-sky-400">Computer Science student</span> at the University of Wisconsin–Madison.
+          My interests center on database internals, distributed systems, and hardware-level performance optimization.
+          I focus on engineering scalable backend infrastructure, ranging from columnar execution engines to fault-tolerant data pipelines.
         </p>
-      </div>
-      
-      <div class="flex flex-wrap gap-4 -mt-4 pt-0">
-        {contactLinks.map((link) => (
-          <a 
-            href={link.href}
-            target={link.label !== 'Email Me' ? "_blank" : undefined}
-            class="px-5 py-2.5 rounded-xl border border-sky-200 dark:border-sky-800 
-                   hover:border-sky-400 dark:hover:border-sky-500
-                   hover:text-sky-600 dark:hover:text-sky-300 
-                   hover:-translate-y-1 hover:shadow-lg hover:shadow-sky-500/10
-                   transition-all duration-300 text-sm font-bold 
-                   text-sky-900 dark:text-sky-100 bg-white/40 dark:bg-transparent"
-          >
-            {link.label}
-          </a>
-        ))}
+        
+        <div class="flex flex-wrap gap-4 pt-0">
+          {contactLinks.map((link) => (
+            <div class="claw-container">
+              <div class="shake-unit">
+
+<a 
+                  href={link.href}
+                  target={link.label !== 'Email Me' ? "_blank" : undefined}
+                  class="relative z-[2] px-5 py-2.5 rounded-xl border border-sky-200 dark:border-sky-800 
+                         hover:border-sky-400 dark:hover:border-sky-500
+                         hover:text-sky-600 dark:hover:text-sky-300
+                         transition-all duration-300 text-sm font-bold 
+                         text-sky-900 dark:text-sky-100 bg-sky-50 dark:bg-sky-950 inline-block"
+                >
+                  {link.label}
+                </a>
+
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
 
-    <section id="experience" class="pt-8 border-t border-sky-100 dark:border-sky-900 scroll-mt-24 relative z-10">
-      <h2 class="text-2xl font-extrabold tracking-tight text-sky-950 dark:text-sky-50 mb-6">Experience</h2>
+    <section id="experience" class="pt-4 pb-4 border-t border-sky-100 dark:border-sky-900 scroll-mt-24 relative z-10">
+      <h2 class="text-2xl font-extrabold tracking-tight text-sky-950 dark:text-sky-50 mb-3">Experience</h2>
       <div class="space-y-4">
         {experiences.map((exp) => (
-          <div class="group border border-sky-200 dark:border-sky-800 rounded-2xl p-6 
-                      hover:bg-white dark:hover:bg-sky-900/30 
-                      hover:border-sky-400 dark:hover:border-sky-500
-                      hover:shadow-xl hover:shadow-sky-500/5
-                      transition-all duration-300">
-            
+          <div class="group border border-sky-200 dark:border-sky-800 rounded-2xl p-6 hover:bg-white dark:hover:bg-sky-900/30 hover:border-sky-400 dark:hover:border-sky-500 hover:shadow-xl hover:shadow-sky-500/5 transition-all duration-300">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-1">
               <h3 class="text-lg font-bold tracking-tight text-sky-950 dark:text-sky-100">
                 {exp.title}
@@ -112,8 +114,8 @@ const contactLinks = [
       </div>
     </section>
 
-    <section id="skills" class="pt-8 border-t border-sky-100 dark:border-sky-900 scroll-mt-24 relative z-10">
-      <h2 class="text-2xl font-extrabold tracking-tight text-sky-950 dark:text-sky-50 mb-6">Skills & Technologies</h2>
+    <section id="skills" class="pt-4 border-t border-sky-100 dark:border-sky-900 scroll-mt-24 relative z-10">
+      <h2 class="text-2xl font-extrabold tracking-tight text-sky-950 dark:text-sky-50 mb-3">Skills & Technologies</h2>
       <div class="pt-2">
         <TechStack client:load />
       </div>
