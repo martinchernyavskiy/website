@@ -21,12 +21,12 @@ const BOOKS: Book[] = [
     spineW: 38, spineAccent: '#b91c1c', buyUrl: 'https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/' },
   { id: 'sdi-1', genres: ['System Design', 'Software Engineering'], title: 'System Design Interview', shortTitle: 'SDI Vol. 1',
     author: 'Alex Xu', isbn: '9798664653403', section: 'technical', status: 'to-read',
-    note: "Haven't read yet — on the list for interview prep and architectural thinking.",
+    note: "Haven't read yet. On the list for interview prep and architectural thinking.",
     blurb: "An insider's guide to system design interviews, covering URL shorteners, web crawlers, notification systems, news feeds, and more.",
     spineW: 26, spineAccent: '#1e40af', buyUrl: 'https://www.amazon.com/dp/B08CMF2CQF' },
   { id: 'sdi-2', genres: ['System Design', 'Software Engineering'], title: 'System Design Interview Vol. 2', shortTitle: 'SDI Vol. 2',
     author: 'Alex Xu & Sahn Lam', isbn: '9781736049112', section: 'technical', status: 'to-read',
-    note: "Haven't read yet — picks up where volume one left off with harder design problems.",
+    note: "Haven't read yet. Picks up where volume one left off with harder design problems.",
     blurb: 'Volume 2 covers proximity services, hotel reservation, ad click aggregation, and more advanced distributed system designs.',
     spineW: 32, spineAccent: '#0f766e', buyUrl: 'https://www.amazon.com/dp/1736049119' },
   { id: '1984', genres: ['Dystopian Fiction', 'Political Philosophy', 'Literary Fiction'], title: '1984', shortTitle: '1984', author: 'George Orwell', isbn: '9780451524935',
@@ -151,15 +151,15 @@ function paginateText(text: string, charsPerPage = 340): string[] {
       break;
     }
 
-    const window = remaining.slice(0, charsPerPage);
+    const chunk = remaining.slice(0, charsPerPage);
     const lastSentence = Math.max(
-      window.lastIndexOf('. '),
-      window.lastIndexOf('! '),
-      window.lastIndexOf('? ')
+      chunk.lastIndexOf('. '),
+      chunk.lastIndexOf('! '),
+      chunk.lastIndexOf('? ')
     );
     const cut = lastSentence > charsPerPage * 0.5
       ? lastSentence + 1
-      : window.lastIndexOf(' ');
+      : chunk.lastIndexOf(' ');
     if (cut <= 0) {
       pages.push(remaining.slice(0, charsPerPage));
       remaining = remaining.slice(charsPerPage).trimStart();
@@ -172,9 +172,9 @@ function paginateText(text: string, charsPerPage = 340): string[] {
 }
 
 
-function Book3DModal({ book, onClose }: { book: Book; onClose: () => void }) {
-  const W = 190, H = 260, D = 38;
+const PAGE_STRIPES = Array.from({ length: 20 }, (_, i) => i);
 
+function Book3DModal({ book, onClose }: { book: Book; onClose: () => void }) {
   const noteChunks  = paginateText(book.note);
   const note2Chunks = paginateText(book.note2 || '');
   const allNoteChunks = [...noteChunks, ...note2Chunks];
@@ -214,6 +214,9 @@ function Book3DModal({ book, onClose }: { book: Book; onClose: () => void }) {
   const [expanded,   setExpanded]   = useState(false);
   const [winH,       setWinH]       = useState(typeof window!=='undefined' ? window.innerHeight : 800);
   const [winW,       setWinW]       = useState(typeof window!=='undefined' ? window.innerWidth  : 1200);
+  const W = Math.min(190, Math.floor((winW - 32) / 2));
+  const H = Math.round(W * 260 / 190);
+  const D = Math.round(W * 38 / 190);
   const modalRef = useRef<HTMLDivElement>(null);
 
   const dragRef      = useRef<{ sx: number; sy: number; rx: number; ry: number } | null>(null);
@@ -223,8 +226,8 @@ function Book3DModal({ book, onClose }: { book: Book; onClose: () => void }) {
   const sceneRef     = useRef<HTMLDivElement>(null);
   const idleTimer    = useRef<ReturnType<typeof setTimeout> | null>(null);
   const endTimer     = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closeTimer   = useRef<ReturnType<typeof setTimeout> | null>(null);
   const coverUrl = `/api/cover/${book.isbn}`;
-  const pageStripes  = Array.from({ length: 20 }, (_, i) => i);
 
   const toggleExpanded = useCallback(() => setExpanded(e => !e), []);
 
@@ -232,7 +235,7 @@ function Book3DModal({ book, onClose }: { book: Book; onClose: () => void }) {
     if (closing) return;
     setClosing(true);
     if (endTimer.current) clearTimeout(endTimer.current);
-    setTimeout(() => {
+    closeTimer.current = setTimeout(() => {
       setTurned(0); setCoverOpen(false); setRotX(-8); setRotY(-22);
       setTimeout(() => { setFloating(true); setClosing(false); setEndHold(false); }, 850);
     }, 500);
@@ -243,7 +246,7 @@ function Book3DModal({ book, onClose }: { book: Book; onClose: () => void }) {
     idleTimer.current = setTimeout(() => setFloating(true), 4000);
   }, []);
 
-  useEffect(() => { resetIdle(); return () => { if (idleTimer.current) clearTimeout(idleTimer.current); }; }, [resetIdle]);
+  useEffect(() => { resetIdle(); return () => { if (idleTimer.current) clearTimeout(idleTimer.current); if (closeTimer.current) clearTimeout(closeTimer.current); }; }, [resetIdle]);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -363,27 +366,14 @@ function Book3DModal({ book, onClose }: { book: Book; onClose: () => void }) {
       <div
         className="flex flex-col items-center gap-4"
         onClick={e => e.stopPropagation()}
-        style={{ userSelect: 'none' }}
+        style={{ userSelect: 'none', width: '100%', maxWidth: W * 2 }}
       >
         {}
         <div style={(() => {
-          if (!expanded) {
-            // Scale down on small screens; shift right when open so left page is visible
-            const bookW = coverOpen ? W * 2.0 : W;
-            const fitScale = Math.min(1, (winW - 32) / bookW, (winH - 220) / H);
-            const shiftX = coverOpen ? (W * fitScale) / 2 : 0;
-            return {
-              flexShrink: 0,
-              transform: fitScale < 1
-                ? `translateX(${shiftX.toFixed(1)}px) scale(${fitScale.toFixed(3)})`
-                : coverOpen ? `translateX(${shiftX.toFixed(1)}px)` : undefined,
-              transformOrigin: 'center center',
-              transition: 'transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94)',
-            };
-          }
+          if (!expanded) return { flexShrink: 0, marginLeft: coverOpen ? `${W}px` : '0px', transition: 'margin-left 0.5s cubic-bezier(0.25,0.46,0.45,0.94)' };
 
           const effectiveW = coverOpen ? W * 2.0 : W;
-          const s = Math.max(1.05, Math.min(
+          const s = Math.max(1.0, Math.min(
             (winH - 140) / H,
             (winW - 60) / effectiveW,
             1.75
@@ -409,7 +399,7 @@ function Book3DModal({ book, onClose }: { book: Book; onClose: () => void }) {
           filter: 'drop-shadow(0 28px 24px rgba(0,0,0,0.55))',
           touchAction: 'none',
         }}
-          onPointerDown={onPD} onPointerMove={onPM} onPointerUp={onPU}
+          onPointerDown={onPD} onPointerMove={onPM} onPointerUp={onPU} onPointerCancel={onPU}
         >
           <div style={{
             position: 'absolute', left: '50%', top: '50%',
@@ -447,7 +437,7 @@ function Book3DModal({ book, onClose }: { book: Book; onClose: () => void }) {
               background: 'linear-gradient(to right, #f5f0e8, #ede8df)',
               overflow: 'hidden',
             }}>
-              {pageStripes.map(i => (
+              {PAGE_STRIPES.map(i => (
                 <div key={i} style={{
                   position: 'absolute', left: 0, right: 0,
                   top: `${(i / 20) * 100}%`, height: '5%',
@@ -649,7 +639,7 @@ function Book3DModal({ book, onClose }: { book: Book; onClose: () => void }) {
         <div onClick={e => e.stopPropagation()} onPointerDown={e => e.stopPropagation()}
           style={(() => {
             const effectiveW = coverOpen ? W * 2.0 : W;
-            const s = Math.max(1.05, Math.min((winH - 140) / H, (winW - 60) / effectiveW, 1.75));
+            const s = Math.max(1.0, Math.min((winH - 140) / H, (winW - 60) / effectiveW, 1.75));
             const scaledH = H * s;
             const bookCenterY = (winH - 80) / 2 + 40;
             const bookTop   = bookCenterY - scaledH / 2;
@@ -756,6 +746,9 @@ const RANGE_LABEL_W = 28;
 const MIN_PER_ROW = 3;
 const MAX_PER_ROW = 10;
 
+const TECH_GENRES    = Array.from(new Set(BOOKS.filter(b => b.section === 'technical').flatMap(b => b.genres))).sort();
+const NONTECH_GENRES = Array.from(new Set(BOOKS.filter(b => b.section === 'nontechnical').flatMap(b => b.genres))).sort();
+
 function calcBooksPerRow(containerW: number): number {
   const usable = containerW - RANGE_LABEL_W - 8;
   const perRow = Math.floor(usable / (AVG_SPINE_W + SPINE_GAP));
@@ -784,7 +777,11 @@ export default function Bookshelf() {
     return () => window.removeEventListener('resize', update);
   }, []);
 
-  const allGenres = Array.from(new Set(BOOKS.flatMap(b => b.genres))).sort();
+  const toggleGenre = useCallback((g: string) => setActiveGenres(prev => {
+    const next = new Set(prev);
+    next.has(g) ? next.delete(g) : next.add(g);
+    return next;
+  }), []);
 
   const filterBooks = (books: Book[]) =>
     activeGenres.size > 0 ? books.filter(b => b.genres.some(g => activeGenres.has(g))) : books;
@@ -795,13 +792,7 @@ export default function Bookshelf() {
   return (
     <div ref={containerRef} className="w-full pb-16">
       {(() => {
-        const techGenres    = Array.from(new Set(BOOKS.filter(b => b.section === 'technical').flatMap(b => b.genres))).sort();
-        const nontechGenres = Array.from(new Set(BOOKS.filter(b => b.section === 'nontechnical').flatMap(b => b.genres))).sort();
-        const toggleGenre = (g: string) => setActiveGenres(prev => {
-          const next = new Set(prev);
-          next.has(g) ? next.delete(g) : next.add(g);
-          return next;
-        });
+
         const pill = (g: string, label: string) => (
           <button key={label} onClick={() => toggleGenre(g)}
             style={{ fontSize:8, fontFamily:"monospace", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.15em",
@@ -827,11 +818,11 @@ export default function Bookshelf() {
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
               <span style={{ fontSize:7, fontFamily:"monospace", textTransform:"uppercase", letterSpacing:"0.18em", color:"rgba(56,189,248,0.25)", whiteSpace:"nowrap" }}>Technical</span>
-              {techGenres.map(g => pill(g, g))}
+              {TECH_GENRES.map(g => pill(g, g))}
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
               <span style={{ fontSize:7, fontFamily:"monospace", textTransform:"uppercase", letterSpacing:"0.18em", color:"rgba(56,189,248,0.25)", whiteSpace:"nowrap" }}>Fiction</span>
-              {nontechGenres.map(g => pill(g, g))}
+              {NONTECH_GENRES.map(g => pill(g, g))}
             </div>
           </div>
         );
