@@ -1,12 +1,22 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import BookshelfComponent from '../components/Bookshelf';
 ---
 
 <BaseLayout title="Bookshelf | Martin Chernyavskiy">
-  <div class="flex flex-col items-center justify-center py-20 text-center">
-    <h1 class="text-4xl font-extrabold text-sky-950 dark:text-sky-50 mb-4">Bookshelf</h1>
-    <p class="text-sky-600 dark:text-sky-400 font-mono text-sm tracking-widest uppercase">
-      This page is currently under construction.
-    </p>
+  <div class="mt-10 space-y-8 relative z-10">
+
+    <div class="space-y-2 max-w-2xl">
+      <h1 class="text-4xl font-extrabold tracking-tight text-sky-950 dark:text-sky-50">
+        Bookshelf
+      </h1>
+      <p class="text-lg text-sky-900/80 dark:text-sky-100/70 leading-relaxed">
+        Books I've read and books waiting on the shelf. Technical above, everything else below.
+        Click a spine to open.
+      </p>
+    </div>
+
+    <BookshelfComponent client:load />
+
   </div>
 </BaseLayout>
