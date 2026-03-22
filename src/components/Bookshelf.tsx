@@ -246,6 +246,11 @@ function Book3DModal({ book, onClose }: { book: Book; onClose: () => void }) {
   useEffect(() => { resetIdle(); return () => { if (idleTimer.current) clearTimeout(idleTimer.current); }; }, [resetIdle]);
 
   useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  useEffect(() => {
     const onResize = () => { setWinH(window.innerHeight); setWinW(window.innerWidth); };
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
@@ -362,7 +367,20 @@ function Book3DModal({ book, onClose }: { book: Book; onClose: () => void }) {
       >
         {}
         <div style={(() => {
-          if (!expanded) return { flexShrink: 0 };
+          if (!expanded) {
+            // Scale down on small screens; shift right when open so left page is visible
+            const bookW = coverOpen ? W * 2.0 : W;
+            const fitScale = Math.min(1, (winW - 32) / bookW, (winH - 220) / H);
+            const shiftX = coverOpen ? (W * fitScale) / 2 : 0;
+            return {
+              flexShrink: 0,
+              transform: fitScale < 1
+                ? `translateX(${shiftX.toFixed(1)}px) scale(${fitScale.toFixed(3)})`
+                : coverOpen ? `translateX(${shiftX.toFixed(1)}px)` : undefined,
+              transformOrigin: 'center center',
+              transition: 'transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94)',
+            };
+          }
 
           const effectiveW = coverOpen ? W * 2.0 : W;
           const s = Math.max(1.05, Math.min(
@@ -389,6 +407,7 @@ function Book3DModal({ book, onClose }: { book: Book; onClose: () => void }) {
           cursor: 'grab',
           animation: floating ? 'book-float 3.5s ease-in-out infinite' : 'none',
           filter: 'drop-shadow(0 28px 24px rgba(0,0,0,0.55))',
+          touchAction: 'none',
         }}
           onPointerDown={onPD} onPointerMove={onPM} onPointerUp={onPU}
         >
@@ -597,17 +616,17 @@ function Book3DModal({ book, onClose }: { book: Book; onClose: () => void }) {
               </div>
             </div>
             {coverOpen && !closing && (
-              <div className="flex items-center gap-3" style={{ userSelect: 'none' }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, userSelect:"none", flexShrink:0, whiteSpace:"nowrap" }}>
                 <button onClick={e => { e.stopPropagation(); goPrev(); }} onPointerDown={e => e.stopPropagation()}
                   disabled={turned === 0 && !endHold}
-                  className="text-[9px] font-mono font-bold uppercase tracking-widest px-3 py-1 rounded border border-sky-700/50 text-sky-400 hover:text-sky-300 hover:border-sky-500 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-default">
+                  style={{ fontSize:9, fontFamily:"monospace", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", padding:"4px 10px", borderRadius:5, border:"1px solid rgba(56,189,248,0.4)", color:"#38bdf8", background:"transparent", cursor:"pointer", flexShrink:0, opacity:(turned===0&&!endHold)?0.3:1 }}>
                   ← prev
                 </button>
-                <span className="text-[9px] font-mono text-sky-700">{endHold ? 'end' : `page ${turned} / ${N}`}</span>
+                <span style={{ fontSize:9, fontFamily:"monospace", color:"rgba(56,189,248,0.5)", flexShrink:0 }}>{endHold ? "end" : `${turned} / ${N}`}</span>
                 <button onClick={e => { e.stopPropagation(); goNext(); }} onPointerDown={e => e.stopPropagation()}
                   disabled={turned === N && !endHold}
-                  className="text-[9px] font-mono font-bold uppercase tracking-widest px-3 py-1 rounded border border-sky-700/50 text-sky-400 hover:text-sky-300 hover:border-sky-500 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-default">
-                  {endHold ? 'close ✕' : 'next →'}
+                  style={{ fontSize:9, fontFamily:"monospace", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", padding:"4px 10px", borderRadius:5, border:"1px solid rgba(56,189,248,0.4)", color:"#38bdf8", background:"transparent", cursor:"pointer", flexShrink:0, opacity:(turned===N&&!endHold)?0.3:1 }}>
+                  {endHold ? "close ✕" : "next →"}
                 </button>
               </div>
             )}
