@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-
 interface Track {
   title: string;
   artist: string;
@@ -7,15 +6,13 @@ interface Track {
   albumArt: string;
   isPlaying: boolean;
 }
-
 export default function DailyTunes() {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     const fetchTunes = async () => {
       try {
-        const res = await fetch(`/api/spotify.json?t=${Date.now()}`);
+        const res = await fetch(`/api/spotify.json`);
         const data = await res.json();
         if (data.tracks) {
           setTracks(data.tracks);
@@ -26,12 +23,10 @@ export default function DailyTunes() {
         setLoading(false);
       }
     };
-
     fetchTunes();
     const interval = setInterval(fetchTunes, 30000);
     return () => clearInterval(interval);
   }, []);
-
   if (loading) {
     return (
       <div className="flex flex-col gap-[18px] animate-pulse pt-4">
@@ -47,7 +42,6 @@ export default function DailyTunes() {
       </div>
     );
   }
-
   return (
     <div className="w-full max-w-sm flex flex-col space-y-[18px]">
       <div className="flex items-center gap-2 text-sky-500 font-bold text-[11px] tracking-widest uppercase">
@@ -56,7 +50,6 @@ export default function DailyTunes() {
         </svg>
         Daily Tunes
       </div>
-
       <div className="space-y-[18px]">
         {tracks.map((track, index) => (
           <a 
@@ -66,7 +59,6 @@ export default function DailyTunes() {
             rel="noopener noreferrer"
             className="group flex items-center gap-4 transition-all duration-300 hover:translate-x-1"
           >
-            {/* Number/Bars Column */}
             <div className="text-[10.5px] font-bold text-sky-300 dark:text-sky-800 w-3.5 flex-shrink-0">
               {track.isPlaying ? (
                 <span className="flex gap-0.5 items-end h-3 w-3">
@@ -76,8 +68,6 @@ export default function DailyTunes() {
                 </span>
               ) : index + 1}
             </div>
-
-            {/* Custom 44px Album Art */}
             <div className="w-11 h-11 flex-shrink-0 relative">
               <img 
                 src={track.albumArt} 
@@ -85,8 +75,6 @@ export default function DailyTunes() {
                 className="w-full h-full rounded-md object-cover shadow-sm group-hover:shadow-md transition-shadow"
               />
             </div>
-
-            {/* Proportional Title & Artist */}
             <div className="flex flex-col min-w-0">
               <span className="text-[15px] font-bold text-sky-900 dark:text-sky-100 truncate group-hover:text-sky-600 dark:group-hover:text-sky-400">
                 {track.title}

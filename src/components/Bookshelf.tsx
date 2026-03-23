@@ -361,7 +361,8 @@ function Book3DModal({ book, onClose }: { book: Book; onClose: () => void }) {
       ref={modalRef}
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={onClose}
-      style={{ background: 'rgba(1,12,28,0.9)', backdropFilter: 'blur(12px)', userSelect: 'none' }}
+      onContextMenu={e => e.preventDefault()}
+      style={{ background: 'rgba(1,12,28,0.9)', backdropFilter: 'blur(12px)', userSelect: 'none', WebkitUserSelect: 'none' }}
     >
       <div
         className="flex flex-col items-center gap-4"
@@ -500,6 +501,19 @@ function Book3DModal({ book, onClose }: { book: Book; onClose: () => void }) {
                       <p style={{ color: book.spineAccent, fontSize: 10, opacity: 0.7, margin: 0, userSelect: 'none' }}>{book.author}</p>
                     </div>
                   )}
+                </div>
+
+                <div style={{
+                  position: 'absolute', width: W, height: H, left: 0, top: 0,
+                  backfaceVisibility: 'hidden',
+                  transform: 'rotateY(180deg)',
+                  background: 'linear-gradient(to left, #eaecf0, #eef0f4)',
+                  borderRight: `2px solid ${book.spineAccent}22`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span style={{ color: 'rgba(148,163,184,0.4)', fontSize: 8, fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.18em', userSelect: 'none' }}>
+                    {book.shortTitle}
+                  </span>
                 </div>
 
               </div>
