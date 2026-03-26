@@ -10,7 +10,14 @@ const ISBN_OVERRIDES: Record<string, string> = {
   '9780618346271': '9780261102378',
 };
 
-export const GET: APIRoute = async ({ params }) => {
+export const GET: APIRoute = async ({ params, request }) => {
+  
+  const referer = request.headers.get('referer');
+  
+  if (referer && !referer.includes('martinchernyavskiy.com') && !referer.includes('localhost')) {
+    return new Response('Hotlinking disabled', { status: 403 });
+  }
+  
   const isbn = params.isbn?.replace(/[^0-9X]/gi, '');
   if (!isbn) return new Response('Not found', { status: 404 });
 
