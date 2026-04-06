@@ -98,9 +98,75 @@ html {
   animation: snore 3s ease-in-out infinite;
 }
 
-/* ── Book float animation ─────────────────────────────────────────────────── */
 @keyframes book-float {
   0%, 100% { transform: translateY(0px);   }
   30%       { transform: translateY(-10px); }
   60%       { transform: translateY(-6px);  }
+}
+@keyframes rc-gradient {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.rc-btn {
+  background: linear-gradient(135deg, #0ea5e920, #6366f130, #a78bfa20, #0ea5e920);
+  background-size: 300% 300%;
+  animation: rc-gradient 4s ease infinite;
+  border: 1px solid #0ea5e960;
+  color: #7dd3fc;
+  box-shadow: 0 0 20px #0ea5e920;
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
+
+.rc-btn:hover {
+  box-shadow: 0 0 32px #0ea5e950;
+  border-color: #38bdf8;
+}
+
+.rc-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.rc-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 47, 73, 0.75);
+  backdrop-filter: blur(8px);
+}
+
+.rc-panel {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 448px;
+  border-radius: 16px;
+  border: 1px solid rgba(14, 165, 233, 0.25);
+  background: #040d18;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
+  padding: 24px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.rc-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.rc-card-face {
+  border-radius: 12px;
+  min-height: 140px;
+  background: #0d1117;
+  cursor: pointer;
+  user-select: none;
+  display: grid;
 }

@@ -1,138 +1,290 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { ALL_FLAT_CARDS, GROUP_LABELS, type FlatCard } from '../lib/flashcards';
 
-interface FlashCard { front: string; back: string; }
-interface DeckEntry { courseCode: string; courseName: string; cards: FlashCard[]; }
+const GROUP_COLORS: Record<string, string> = {
+  'hardware':     '#38bdf8',
+  'systems-prog': '#22d3ee',
+  'memory':       '#818cf8',
+  'os':           '#a78bfa',
+  'concurrency':  '#f472b6',
+  'data':         '#34d399',
+  'networking':   '#fbbf24',
+  'distributed':  '#fb923c',
+  'ai':           '#f87171',
+};
 
-const ALL_DECKS: DeckEntry[] = [
-  {
-    courseCode: 'CS 537',
-    courseName: 'Operating Systems',
-    cards: [
-      { front: 'What is the key difference between a process and a thread?',          back: 'A process has its own address space; threads share the address space of their parent process but have independent stacks and registers.' },
-      { front: "What problem does Peterson's algorithm solve?",                       back: 'Mutual exclusion for two processes sharing a critical section, using only shared memory and without hardware atomics.' },
-      { front: 'What is a TLB shootdown?',                                            back: 'When a page mapping changes, all CPUs caching that mapping in their TLBs must be notified via IPI to invalidate the stale entry.' },
-      { front: 'What is the difference between internal and external fragmentation?', back: 'Internal: wasted space inside an allocated block. External: free memory exists but is split into non-contiguous chunks too small to satisfy a request.' },
-      { front: 'Why does xv6 use a linked list for the free page list?',              back: 'Simplicity — allocation and free are O(1) without needing to scan a bitmap. The tradeoff is no efficient range queries.' },
-    ],
-  },
-];
+const ALL_GROUPS = Object.keys(GROUP_LABELS);
+const TOTAL_CARDS    = ALL_FLAT_CARDS.length;
+const TOTAL_CONCEPTS = new Set(ALL_FLAT_CARDS.map(c => c.conceptLabel)).size;
+const TOTAL_GROUPS   = ALL_GROUPS.length;
 
-const ALL_CARDS: Array<FlashCard & { courseCode: string; courseName: string }> =
-  ALL_DECKS.flatMap(d => d.cards.map(c => ({ ...c, courseCode: d.courseCode, courseName: d.courseName })));
-
-function pickRandom(exclude?: number): number {
-  if (ALL_CARDS.length <= 1) return 0;
-  let idx: number;
-  do { idx = Math.floor(Math.random() * ALL_CARDS.length); } while (idx === exclude);
-  return idx;
+function pickRandom(pool: FlatCard[], exclude?: FlatCard): FlatCard {
+  if (pool.length === 1) return pool[0];
+  let card: FlatCard;
+  do { card = pool[Math.floor(Math.random() * pool.length)]; }
+  while (card === exclude && pool.length > 1);
+  return card;
 }
 
-export default function RandomCard() {
-  const [open,    setOpen]    = useState(false);
-  const [idx,     setIdx]     = useState(() => pickRandom());
+function CategorySelector({ onStart }: { onStart: (groups: Set<string>) => void }) {
+  const [selected, setSelected] = useState<Set<string>>(new Set(ALL_GROUPS));
+  const toggle = (g: string) => setSelected(prev => {
+    const next = new Set(prev);
+    if (next.has(g)) { if (next.size > 1) next.delete(g); } else next.add(g);
+    return next;
+  });
+  const totalCards = ALL_FLAT_CARDS.filter(c => selected.has(c.group)).length;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div>
+        <p style={{ fontSize: '14px', fontWeight: 600, color: '#e0f2fe', marginBottom: '4px' }}>Choose categories</p>
+        <p style={{ fontSize: '12px', color: '#38bdf8' }}>{totalCards} cards in selection</p>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        {ALL_GROUPS.map(g => {
+          const isOn = selected.has(g);
+          const color = GROUP_COLORS[g];
+          const count = ALL_FLAT_CARDS.filter(c => c.group === g).length;
+          return (
+            <button key={g} onClick={() => toggle(g)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '12px',
+                padding: '8px 12px', borderRadius: '8px',
+                cursor: 'pointer', textAlign: 'left', border: 'none',
+                background: isOn ? color + '18' : 'none',
+                outline: '1px solid ' + (isOn ? color + '60' : '#1e3a5f'),
+                transition: 'all 0.15s',
+                WebkitAppearance: 'none', appearance: 'none', boxSizing: 'border-box',
+              }}>
+              <span style={{
+                width: '10px', height: '10px', borderRadius: '50%', flexShrink: 0,
+                background: isOn ? color : '#1e3a5f',
+                boxShadow: isOn ? ('0 0 6px ' + color + '80') : 'none',
+                transition: 'all 0.15s',
+              }} />
+              <span style={{ flex: 1, fontSize: '11px', fontFamily: 'monospace', fontWeight: 600, color: isOn ? color : '#475569' }}>
+                {GROUP_LABELS[g]}
+              </span>
+              <span style={{ fontSize: '10px', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums', color: isOn ? color + 'aa' : '#334155' }}>
+                {count}
+              </span>
+              {isOn && (
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M1.5 5.5l2.5 2.5 5-5" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </button>
+          );
+        })}
+      </div>
+      <div style={{ display: 'flex', gap: '8px', paddingTop: '4px' }}>
+        <button onClick={() => setSelected(new Set(ALL_GROUPS))}
+          style={{
+            flex: 1, padding: '6px 0', borderRadius: '8px',
+            fontSize: '10px', fontFamily: 'monospace', fontWeight: 700,
+            textTransform: 'uppercase', letterSpacing: '0.1em',
+            cursor: 'pointer', border: '1px solid #1e3a5f',
+            background: 'none', color: '#38bdf8',
+            transition: 'border-color 0.2s',
+            WebkitAppearance: 'none', appearance: 'none',
+          }}>
+          All
+        </button>
+        <button onClick={() => onStart(selected)} disabled={totalCards === 0}
+          style={{
+            flex: 2, padding: '6px 0', borderRadius: '8px',
+            fontSize: '11px', fontFamily: 'monospace', fontWeight: 700,
+            textTransform: 'uppercase', letterSpacing: '0.1em',
+            cursor: 'pointer', border: 'none',
+            background: '#0ea5e9', color: '#fff',
+            opacity: totalCards === 0 ? 0.4 : 1,
+          }}>
+          Start → {totalCards} cards
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function CardViewer({ pool, onClose, onBack }: { pool: FlatCard[]; onClose: () => void; onBack: () => void }) {
+  const [card,    setCard]    = useState<FlatCard>(() => pickRandom(pool));
   const [flipped, setFlipped] = useState(false);
+  const historyRef = useRef<FlatCard[]>([]);
+  const cursorRef  = useRef(0);
+  const pendingRef = useRef(false);
 
-  const card = ALL_CARDS[idx];
+  useEffect(() => { historyRef.current = [card]; }, []);
 
-  const next = useCallback(() => {
+  const navigate = useCallback((dir: 1 | -1) => {
+    if (pendingRef.current) return;
+    pendingRef.current = true;
     setFlipped(false);
-    setTimeout(() => setIdx(i => pickRandom(i)), 120);
-  }, []);
+    setTimeout(() => {
+      if (dir === 1) {
+        const newCard = pickRandom(pool, historyRef.current[historyRef.current.length - 1]);
+        historyRef.current = [...historyRef.current.slice(0, cursorRef.current + 1), newCard];
+        cursorRef.current += 1;
+        setCard(newCard);
+      } else {
+        if (cursorRef.current === 0) { pendingRef.current = false; return; }
+        cursorRef.current -= 1;
+        setCard(historyRef.current[cursorRef.current]);
+      }
+      pendingRef.current = false;
+    }, 120);
+  }, [pool]);
 
   useEffect(() => {
-    if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setFlipped(f => !f); }
-      if (e.key === 'ArrowRight' || e.key === 'n') next();
+      if (e.key === 'Escape')                      { e.preventDefault(); onClose(); }
+      if (e.key === ' ' || e.key === 'Enter')      { e.preventDefault(); setFlipped(f => !f); }
+      if (e.key === 'ArrowRight' || e.key === 'n') { e.preventDefault(); navigate(1); }
+      if (e.key === 'ArrowLeft'  || e.key === 'p') { e.preventDefault(); navigate(-1); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, next]);
+  }, [onClose, navigate]);
 
-  const openModal = () => { setIdx(pickRandom()); setFlipped(false); setOpen(true); };
+  const canPrev = cursorRef.current > 0;
+
+  const color   = GROUP_COLORS[card.group] ?? '#38bdf8';
+  
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '9px', fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', padding: '2px 8px', borderRadius: '4px', border: '1px solid ' + color + '50', color, background: color + '15' }}>
+              {card.groupLabel}
+            </span>
+            {card.courses.map(c => (
+              <span key={c} style={{ fontSize: '9px', fontFamily: 'monospace', border: '1px solid ' + color + '30', borderRadius: '4px', padding: '2px 6px', color: color + 'aa' }}>
+                {c}
+              </span>
+            ))}
+          </div>
+          <p style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 600, color: '#7dd3fc', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '4px' }}>{card.conceptLabel}</p>
+          <p style={{ fontSize: '9px', fontFamily: 'monospace', color: '#0369a1' }}>{pool.length} cards in pool</p>
+        </div>
+        <button onClick={onClose}
+          style={{ width: '24px', height: '24px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'rgba(14,165,233,0.2)', border: 'none', cursor: 'pointer' }}>
+          <svg width="9" height="9" viewBox="0 0 8 8" fill="none">
+            <path d="M1 1L7 7M7 1L1 7" stroke="#7dd3fc" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </button>
+      </div>
+
+      <div className="rc-card-face" style={{ border: '1px solid ' + color + '40' }}
+        onClick={() => setFlipped(f => !f)}>
+        {[false, true].map(side => (
+          <div key={String(side)}
+            style={{
+              gridArea: '1 / 1',
+              display: flipped === side ? 'flex' : 'none',
+              flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              padding: '16px 20px', textAlign: 'center',
+            }}>
+            <span style={{ fontSize: '8px', fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '12px', color: color + '60' }}>
+              {side ? 'back' : 'front — tap to reveal'}
+            </span>
+            <p style={{ lineHeight: 1.6, fontSize: '14px', fontWeight: side ? 400 : 600, color: side ? '#bae6fd' : '#f0f9ff' }}>
+              {side ? card.back : card.front}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+        <p className="hidden sm:block" style={{ fontSize: '9px', fontFamily: 'monospace', color: '#0369a1' }}>
+          space to flip · arrows navigate · esc close
+        </p>
+        <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
+          <button onClick={() => navigate(-1)} disabled={!canPrev}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '8px', fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', border: '1px solid ' + (canPrev ? color + '40' : '#1e3a5f'), color: canPrev ? color : '#334155', background: canPrev ? color + '12' : 'transparent', opacity: canPrev ? 1 : 0.4, cursor: canPrev ? 'pointer' : 'default' }}>
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M8 5H2M4.5 2.5L2 5l2.5 2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Prev
+          </button>
+          <button onClick={() => navigate(1)}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '8px', fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', border: '1px solid ' + color + '40', color, background: color + '12', cursor: 'pointer' }}>
+            Next
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M2 5h6M5.5 2.5L8 5l-2.5 2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function RandomCard() {
+  const [phase, setPhase] = useState<'closed' | 'select' | 'cards'>('closed');
+  const [pool,  setPool]  = useState<FlatCard[]>([]);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  const handleStart = (groups: Set<string>) => {
+    setPool(ALL_FLAT_CARDS.filter(c => groups.has(c.group)));
+    setPhase('cards');
+  };
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && phase !== 'closed') {
+        e.preventDefault();
+        setPhase('closed');
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [phase]);
 
   return (
     <>
-      <button
-        onClick={openModal}
-        className="cursor-pointer flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-mono font-bold uppercase tracking-widest transition-all duration-200 border border-sky-200 dark:border-sky-800 text-sky-500 dark:text-sky-400 hover:border-sky-400 dark:hover:border-sky-500 hover:bg-sky-50 dark:hover:bg-sky-900/30 hover:text-sky-600 dark:hover:text-sky-300"
-      >
-        <svg width="11" height="11" viewBox="0 0 12 12" fill="none" className="flex-shrink-0">
-          <path d="M2 2h2v2H2zM5 2h2v2H5zM8 2h2v2H8zM2 5h2v2H2zM5 5h2v2H5zM8 5h2v2H8zM2 8h2v2H2zM5 8h2v2H5zM8 8h2v2H8z" fill="currentColor" opacity="0.5" />
-          <path d="M5 5h2v2H5z" fill="currentColor" />
+
+      <button onClick={() => setPhase('select')}
+        ref={btnRef}
+        className="rc-btn"
+        style={{
+          display: 'flex', alignItems: 'center', gap: '10px',
+          padding: '10px 20px', borderRadius: '12px',
+          fontWeight: 700, fontSize: '14px', cursor: 'pointer',
+        }}>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect x="1" y="1" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.3" />
+          <rect x="8" y="1" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.3" />
+          <rect x="1" y="8" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.3" />
+          <rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.3" />
+          <circle cx="10.5" cy="10.5" r="1" fill="currentColor" />
+          <circle cx="3.5" cy="3.5" r="1" fill="currentColor" />
         </svg>
-        Random card
+        Random Card
       </button>
 
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          onClick={() => setOpen(false)}
-        >
-          <div className="absolute inset-0 bg-sky-950/60 backdrop-blur-sm" />
-
-          <div
-            className="relative z-10 w-full max-w-md rounded-2xl border border-sky-700/50 bg-sky-950 shadow-2xl shadow-sky-950/80 p-6 space-y-5"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="space-y-0.5">
-                <p className="text-[9px] font-mono font-bold uppercase tracking-widest text-sky-500">
-                  {card.courseCode} · {card.courseName}
-                </p>
-                <p className="text-[9px] font-mono text-sky-700 uppercase tracking-widest">
-                  {ALL_CARDS.length} cards across {ALL_DECKS.length} deck{ALL_DECKS.length !== 1 ? 's' : ''}
-                </p>
+      {phase !== 'closed' && (
+        <div className="rc-overlay" onClick={() => setPhase('closed')}>
+          <div className="rc-backdrop" />
+          <div className="rc-panel" onClick={e => e.stopPropagation()}>
+            <div className="rc-panel-header">
+              <div>
+                <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#e0f2fe' }}>
+                  {phase === 'select' ? 'Flashcard Practice' : 'Random Card'}
+                </h2>
+                <p style={{ fontSize: '10px', fontFamily: 'monospace', color: 'rgba(14,165,233,0.5)', marginTop: '2px' }}>{TOTAL_CARDS} cards · {TOTAL_CONCEPTS} concepts · {TOTAL_GROUPS} groups</p>
               </div>
-              <button
-                onClick={() => setOpen(false)}
-                className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-full bg-sky-800/50 hover:bg-sky-700/50 transition-colors cursor-pointer"
-                aria-label="Close"
-              >
-                <svg width="9" height="9" viewBox="0 0 8 8" fill="none">
-                  <path d="M1 1L7 7M7 1L1 7" stroke="#7dd3fc" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-              </button>
+              {phase === 'cards' && (
+                <button onClick={() => setPhase('select')}
+                  style={{ fontSize: '9px', fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(14,165,233,0.5)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                  change
+                </button>
+              )}
             </div>
-
-            <div
-              className="relative rounded-xl border border-sky-800/60 bg-sky-900/50 overflow-hidden cursor-pointer select-none"
-              style={{ minHeight: '130px' }}
-              onClick={() => setFlipped(f => !f)}
-            >
-              <div
-                className="absolute inset-0 flex flex-col items-center justify-center px-5 py-4 text-center"
-                style={{ opacity: flipped ? 0 : 1, transition: 'opacity 0.15s ease', pointerEvents: flipped ? 'none' : 'auto' }}
-              >
-                <span className="text-[8px] font-mono uppercase tracking-widest text-sky-600 mb-3">
-                  front · tap to reveal
-                </span>
-                <p className="text-sm font-semibold text-sky-100 leading-snug">{card.front}</p>
-              </div>
-              <div
-                className="absolute inset-0 flex flex-col items-center justify-center px-5 py-4 text-center"
-                style={{ opacity: flipped ? 1 : 0, transition: 'opacity 0.15s ease', pointerEvents: flipped ? 'auto' : 'none' }}
-              >
-                <span className="text-[8px] font-mono uppercase tracking-widest text-sky-600 mb-3">back</span>
-                <p className="text-sm text-sky-200 leading-relaxed">{card.back}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <p className="text-[9px] font-mono text-sky-700">
-                space / enter to flip · → or n for next · esc to close
-              </p>
-              <button
-                onClick={next}
-                className="cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-widest border border-sky-700/60 text-sky-400 hover:border-sky-500 hover:text-sky-300 transition-all"
-              >
-                Next
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path d="M2 5h6M5.5 2.5L8 5l-2.5 2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-            </div>
+            {phase === 'select'
+              ? <CategorySelector onStart={handleStart} />
+              : <CardViewer pool={pool} onClose={() => setPhase('closed')} onBack={() => setPhase('select')} />
+            }
           </div>
         </div>
       )}

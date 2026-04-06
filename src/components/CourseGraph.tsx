@@ -1,4 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { ALL_DECKS } from '../lib/flashcards';
+
+const COURSE_DECKS: Record<string, { title: string; cards: { front: string; back: string }[] }> = {};
+ALL_DECKS.forEach(d => {
+  d.courses.forEach(code => {
+    if (!COURSE_DECKS[code]) COURSE_DECKS[code] = { title: code, cards: [] };
+    COURSE_DECKS[code].cards.push(...d.cards);
+  });
+});
 
 interface FlashCard { front: string; back: string; }
 interface Course {
@@ -28,49 +37,48 @@ const ALL_COURSES: Course[] = [
   { id: 'math234', code: 'MATH 234',  name: 'Calculus — Several Variables',               credits: 4, group: 'math',    x: 110, y: 110,
     blurb: 'Multivariable calculus covering parameterized curves, partial derivatives, multiple integrals, and vector calculus. Provides the optimization geometry underlying numerical methods and machine learning.' },
   { id: 'math341', code: 'MATH 341',  name: 'Linear Algebra',                              credits: 3, group: 'math',    x: 240, y: 60,
-    blurb: 'Vector spaces, linear transformations, eigenvalues, and standard matrix factorizations with rigorous proof writing. Core mathematical language for data systems, graphics, and ML research.' },
+    blurb: 'Vector spaces, linear transformations, eigenvalues, and standard matrix factorizations with rigorous proof writing. Core mathematical language for data systems, machine learning, and graphics.' },
   { id: 'math240', code: 'MATH 240',    name: 'Discrete Mathematics',                        credits: 3, group: 'math',    x: 140, y: 220,
     blurb: 'Logic, sets, recursion, graph theory, and asymptotic analysis with a focus on discrete structures. Direct foundation for algorithm design and database query reasoning.' },
   { id: 'math431', code: 'MATH 431', name: 'Intro to Theory of Probability',             credits: 3, group: 'math',    x: 245, y: 165,
-    blurb: 'Probability axioms, discrete and continuous distributions, expectation, moment generating functions, conditional probability, multivariate distributions, and the central limit theorem. Provides the probabilistic foundations relevant to statistical learning and stochastic analysis in research.' },
+    blurb: 'Probability axioms, discrete and continuous distributions, expectation, moment generating functions, conditional probability, multivariate distributions, and the central limit theorem.' },
   { id: 'stat240', code: 'STAT 240',  name: 'Data Science Modeling I',                     credits: 4, group: 'stat',    x: 100, y: 390,
-    blurb: 'Data management, probability distributions, statistical inference, and simple linear regression using R. Builds the quantitative reasoning used in empirical systems evaluation.' },
+    blurb: 'Data management, probability distributions, statistical inference, and simple linear regression using R.' },
   { id: 'stat303', code: 'STAT 303',  name: 'R for Statistics I',                          credits: 1, group: 'stat',    x: 100, y: 510,
-    blurb: 'Practical R programming for data manipulation and exploratory analysis. Supports reproducible data pipelines in research and statistical computing workflows.' },
+    blurb: 'Practical R programming for data manipulation, exploratory analysis, and visualization.' },
   { id: 'cs252',   code: 'ECE 252',   name: 'Intro to Computer Engineering',               credits: 3, group: 'systems', x: 620, y: 70,
-    blurb: 'Transistor-level logic, combinational and sequential circuit design, and introductory assembly programming. Establishes the hardware substrate that systems software runs on.' },
+    blurb: 'Transistor-level logic, combinational and sequential circuit design, and introductory assembly programming. Establishes the hardware substrate that systems software runs on.',
+    deck: COURSE_DECKS['ECE 252'] },
   { id: 'cs300',   code: 'CS 300',    name: 'Programming II',                              credits: 3, group: 'prog',    x: 370, y: 300,
     blurb: 'Object-oriented design, linked data structures, abstract data types, and introductory complexity analysis in Java. Builds the programming foundations required for advanced systems coursework.' },
   { id: 'cs400',   code: 'CS 400',    name: 'Programming III',                             credits: 3, group: 'prog',    x: 450, y: 415,
-    blurb: 'Balanced search trees, graphs, hash tables, and complexity analysis in professional-grade Java. Bridges foundational data structures with the performance-critical implementations found in systems research.' },
+    blurb: 'Balanced search trees, graphs, hash tables, and complexity analysis in professional-grade Java. Bridges foundational data structures with performance-critical production implementations.' },
   { id: 'cs354',   code: 'CS 354',    name: 'Machine Organization',                        credits: 3, group: 'systems', x: 740, y: 170,
-    blurb: 'C programming, virtual memory, the memory hierarchy, caching, assembly, and linkers. Essential low-level knowledge directly applicable to database storage engines and OS internals.' },
+    blurb: 'C programming, virtual memory, the memory hierarchy, caching, assembly, and linkers. Essential low-level knowledge directly applicable to database storage engines and OS internals.',
+    deck: COURSE_DECKS['CS 354'] },
   { id: 'cs537',   code: 'CS 537',    name: 'Operating Systems',                           credits: 4, group: 'systems', x: 680, y: 310,
-    blurb: 'Scheduling, virtual memory, file systems, synchronization, and I/O handling through xv6 implementation. Directly informs the concurrency and storage layer work in database systems research.',
-    deck: { title: 'CS 537 — Operating Systems', cards: [
-      { front: 'What is the key difference between a process and a thread?',          back: 'A process has its own address space; threads share the address space of their parent process but have independent stacks and registers.' },
-      { front: "What problem does Peterson's algorithm solve?",                       back: 'Mutual exclusion for two processes sharing a critical section, using only shared memory and without hardware atomics.' },
-      { front: 'What is a TLB shootdown?',                                            back: 'When a page mapping changes, all CPUs caching that mapping in their TLBs must be notified via IPI to invalidate the stale entry.' },
-      { front: 'What is the difference between internal and external fragmentation?', back: 'Internal: wasted space inside an allocated block. External: free memory exists but is split into non-contiguous chunks too small to satisfy a request.' },
-      { front: 'Why does xv6 use a linked list for the free page list?',              back: 'Simplicity — allocation and free are O(1) without needing to scan a bitmap. The tradeoff is no efficient range queries.' },
-    ]}
-  },
+    blurb: 'Scheduling, virtual memory, file systems, synchronization, and I/O handling through xv6 implementation. Covers the core abstractions that operating systems provide to user-space programs.',
+    deck: COURSE_DECKS['CS 537'] },
   { id: 'cs640',   code: 'CS 640',    name: 'Computer Networks',                           credits: 3, group: 'systems', x: 790, y: 400,
-    blurb: 'Protocol layering, reliable transmission, congestion control, routing, and widely deployed protocols including TCP/IP and HTTP. Foundation for understanding communication in distributed systems.' },
+    blurb: 'Protocol layering, reliable transmission, congestion control, routing, and widely deployed protocols including TCP/IP and HTTP. Foundation for understanding communication in distributed systems.',
+    deck: COURSE_DECKS['CS 640'] },
   { id: 'cs577',   code: 'CS 577',    name: 'Introduction to Algorithms',                  credits: 4, group: 'algo',    x: 355, y: 165,
     blurb: 'Algorithm design paradigms including greedy, divide-and-conquer, dynamic programming, and reductions to NP-completeness. Provides the analytical framework for evaluating query plan complexity.' },
   { id: 'cs540',   code: 'CS 540',    name: 'Intro to Artificial Intelligence',            credits: 3, group: 'algo',    x: 515, y: 235,
-    blurb: 'Search, knowledge representation, probabilistic reasoning, and machine learning fundamentals. Broadens perspective on data-driven approaches alongside systems-focused coursework.' },
+    blurb: 'Search, knowledge representation, probabilistic reasoning, and machine learning fundamentals. Broadens perspective on data-driven approaches alongside systems-focused coursework.',
+    deck: COURSE_DECKS['CS 540'] },
   { id: 'cs564',   code: 'CS 564',    name: 'Database Management Systems',                 credits: 4, group: 'data',    x: 310, y: 480,
-    blurb: 'Relational algebra, B-tree indexing, buffer pool management, query processing, concurrency control, and recovery. Direct foundation for the open-source SQL engine work at the UW Systems Lab.' },
+    blurb: 'Relational algebra, B-tree indexing, buffer pool management, query processing, concurrency control, and recovery. Covers both the theory and the engineering decisions behind real database systems.',
+    deck: COURSE_DECKS['CS 564'] },
   { id: 'cs544',   code: 'CS 544',    name: 'Intro to Big Data Systems',                   credits: 3, group: 'data',    x: 530, y: 530,
-    blurb: 'Distributed storage and computation using Spark, Kafka, and HDFS with Python. Connects database internals knowledge to production-scale analytical workload patterns.' },
+    blurb: 'Distributed storage and computation using Spark, Kafka, and HDFS with Python. Connects database internals knowledge to production-scale analytical workload patterns.',
+    deck: COURSE_DECKS['CS 544'] },
   { id: 'cs536',   code: 'CS 536',    name: 'Programming Languages and Compilers',         credits: 3, group: 'systems', x: 845, y: 230, planned: true,
-    blurb: 'Lexing, parsing, semantic analysis, and code generation through a full compiler implementation. Deepens understanding of language runtimes and low-level code optimization relevant to query compilation.' },
+    blurb: 'Lexing, parsing, semantic analysis, and code generation through a full compiler implementation. Develops a concrete understanding of how high-level programs become executable machine code.' },
   { id: 'cs642',   code: 'CS 642',    name: 'Introduction to Information Security',        credits: 3, group: 'systems', x: 620, y: 430, planned: true,
     blurb: 'Cryptographic primitives, authentication protocols, and system-level security including memory and OS vulnerabilities. Complements systems knowledge with an adversarial perspective.' },
   { id: 'cs759',   code: 'CS 759',    name: 'High Performance Computing for Engineering',  credits: 3, group: 'systems', x: 845, y: 510, graduate: true, planned: true,
-    blurb: 'Parallel computing on emerging hardware architectures including GPU programming. Direct application to CUDA-based query execution operator development in the Sirius DB research project.' },
+    blurb: 'Parallel computing on emerging hardware architectures including GPU programming, shared-memory parallelism, and performance analysis of compute-intensive workloads.' },
 ];
 
 const edges: Edge[] = [
@@ -122,32 +130,44 @@ function FlashCardViewer({ deck, color }: { deck: NonNullable<Course['deck']>; c
   const [flipped, setFlip] = useState(false);
   const total = deck.cards.length;
   const card  = deck.cards[index];
-  const next = (e: React.MouseEvent) => { e.stopPropagation(); setFlip(false); setTimeout(() => setIndex(i => (i + 1) % total), 150); };
-  const prev = (e: React.MouseEvent) => { e.stopPropagation(); setFlip(false); setTimeout(() => setIndex(i => (i - 1 + total) % total), 150); };
+
+  const navigate = (dir: 1 | -1) => { setFlip(false); setTimeout(() => setIndex(i => (i + dir + total) % total), 150); };
+  const go = (dir: 1 | -1, e: React.MouseEvent) => { e.stopPropagation(); navigate(dir); };
+
+  useEffect(() => {
+    const fn = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') { e.preventDefault(); navigate(1); }
+      if (e.key === 'ArrowLeft')  { e.preventDefault(); navigate(-1); }
+      if (e.key === ' ')          { e.preventDefault(); setFlip(f => !f); }
+    };
+    window.addEventListener('keydown', fn);
+    return () => window.removeEventListener('keydown', fn);
+  }, [total, index]);
   return (
-    <div className="mt-3 space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-[9px] font-mono font-bold uppercase tracking-widest" style={{ color: color.text + '80' }}>Anki · {index + 1} / {total}</span>
-        <a href="#" onClick={e => e.stopPropagation()} className="text-[9px] font-mono font-bold uppercase tracking-widest underline underline-offset-2 opacity-50 hover:opacity-90 transition-opacity" style={{ color: color.text }}>Download .apkg</a>
-      </div>
-      <div className="relative w-full cursor-pointer select-none rounded-lg border overflow-hidden"
-        style={{ height: '90px', borderColor: color.stroke + '40', background: color.fill }}
+    <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <span style={{ fontSize: '9px', fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: color.text + '80' }}>Anki · {index + 1} / {total}</span>
+      <div style={{ position: 'relative', width: '100%', cursor: 'pointer', userSelect: 'none', borderRadius: '8px', border: '1px solid ' + color.stroke + '40', overflow: 'hidden', background: color.fill, display: 'grid' }}
         onClick={e => { e.stopPropagation(); setFlip(f => !f); }}>
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-3 py-2 text-center"
-          style={{ opacity: flipped ? 0 : 1, transition: 'opacity 0.18s ease', pointerEvents: flipped ? 'none' : 'auto' }}>
-          <span className="text-[8px] font-mono uppercase tracking-widest opacity-40 mb-1.5" style={{ color: color.text }}>front · tap to flip</span>
-          <p className="text-xs leading-snug font-medium" style={{ color: color.text }}>{card.front}</p>
-        </div>
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-3 py-2 text-center"
-          style={{ opacity: flipped ? 1 : 0, transition: 'opacity 0.18s ease', pointerEvents: flipped ? 'auto' : 'none' }}>
-          <span className="text-[8px] font-mono uppercase tracking-widest opacity-40 mb-1.5" style={{ color: color.text }}>back</span>
-          <p className="text-xs leading-snug" style={{ color: color.text }}>{card.back}</p>
-        </div>
+        {[false, true].map(side => (
+          <div key={String(side)}
+            style={{
+              gridArea: '1 / 1',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              padding: '16px 12px', textAlign: 'center',
+              opacity: flipped === side ? 1 : 0,
+              transition: 'opacity 0.18s ease',
+              pointerEvents: flipped === side ? 'auto' : 'none',
+              visibility: flipped === side ? 'visible' : 'hidden',
+            }}>
+            <span style={{ fontSize: '8px', fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.12em', opacity: 0.4, marginBottom: '6px', color: color.text }}>{side ? 'back' : 'front · tap to flip'}</span>
+            <p style={{ fontSize: '12px', lineHeight: 1.4, fontWeight: side ? 400 : 500, color: color.text }}>{side ? card.back : card.front}</p>
+          </div>
+        ))}
       </div>
-      <div className="flex justify-between items-center pt-0.5">
-        <button onClick={prev} className="text-[9px] font-mono font-bold px-2 py-0.5 rounded border opacity-50 hover:opacity-90 transition-opacity cursor-pointer" style={{ borderColor: color.stroke + '40', color: color.text }}>← prev</button>
-        <div className="flex gap-1">{deck.cards.map((_, i) => <span key={i} className="w-1 h-1 rounded-full" style={{ background: color.dot, opacity: i === index ? 1 : 0.25 }} />)}</div>
-        <button onClick={next} className="text-[9px] font-mono font-bold px-2 py-0.5 rounded border opacity-50 hover:opacity-90 transition-opacity cursor-pointer" style={{ borderColor: color.stroke + '40', color: color.text }}>next →</button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '2px' }}>
+        <button onClick={e => go(-1, e)} style={{ fontSize: '9px', fontFamily: 'monospace', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', border: '1px solid ' + color.stroke + '40', opacity: 0.5, cursor: 'pointer', color: color.text, background: 'none', WebkitAppearance: 'none', appearance: 'none' }}>← prev</button>
+        <span style={{ fontSize: '9px', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums', opacity: 0.5, color: color.text }}>{index + 1} / {total}</span>
+        <button onClick={e => go(1, e)} style={{ fontSize: '9px', fontFamily: 'monospace', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', border: '1px solid ' + color.stroke + '40', opacity: 0.5, cursor: 'pointer', color: color.text, background: 'none', WebkitAppearance: 'none', appearance: 'none' }}>next →</button>
       </div>
     </div>
   );
@@ -156,20 +176,21 @@ function FlashCardViewer({ deck, color }: { deck: NonNullable<Course['deck']>; c
 function DetailPanel({ course, onClose }: { course: Course; onClose: () => void }) {
   const col = GROUP_COLORS[course.group];
   return (
-    <div className="rounded-xl border p-4 relative" style={{ borderColor: col.stroke + '60', background: col.fill + 'ec' }}>
-      <button onClick={onClose} className="absolute top-3 right-3 w-5 h-5 flex items-center justify-center rounded-full opacity-40 hover:opacity-90 transition-opacity cursor-pointer"
-        style={{ color: col.text, background: col.stroke + '30' }} aria-label="Close">
+    <div style={{ borderRadius: '12px', border: '1px solid ' + col.stroke + '60', padding: '16px', position: 'relative', background: col.fill + 'ec' }}>
+      <button onClick={onClose}
+        style={{ position: 'absolute', top: '12px', right: '12px', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', opacity: 0.4, cursor: 'pointer', color: col.text, background: col.stroke + '30', border: 'none', WebkitAppearance: 'none', appearance: 'none' }}
+        aria-label="Close">
         <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 1L7 7M7 1L1 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
       </button>
-      <div className="flex items-center gap-2 mb-2 pr-6 flex-wrap">
-        <span className="text-[9px] font-mono font-bold uppercase tracking-widest" style={{ color: col.text }}>{course.code}</span>
-        <span className="text-[8px] font-mono font-bold border rounded px-1.5 py-0.5" style={{ color: col.text + '99', borderColor: col.stroke + '40' }}>{course.credits} cr</span>
-        {course.graduate && <span className="text-[8px] font-mono font-bold border rounded px-1.5 py-0.5" style={{ color: col.stroke, borderColor: col.stroke + '60', background: col.stroke + '18' }}>Graduate</span>}
-        {course.planned  && <span className="text-[8px] font-mono font-bold border rounded px-1.5 py-0.5" style={{ color: col.dot + 'cc', borderColor: col.dot + '40', background: col.dot + '12' }}>Planned</span>}
-        {course.deck     && <span className="text-[8px] font-mono font-bold border rounded px-1.5 py-0.5" style={{ color: col.dot, borderColor: col.dot + '60', background: col.dot + '20' }}>Anki deck</span>}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', paddingRight: '24px', flexWrap: 'wrap' }}>
+        <span style={{ fontSize: '9px', fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: col.text }}>{course.code}</span>
+        <span style={{ fontSize: '8px', fontFamily: 'monospace', fontWeight: 700, border: '1px solid ' + col.stroke + '40', borderRadius: '4px', padding: '2px 6px', color: col.text + '99' }}>{course.credits} cr</span>
+        {course.graduate && <span style={{ fontSize: '8px', fontFamily: 'monospace', fontWeight: 700, border: '1px solid ' + col.stroke + '60', borderRadius: '4px', padding: '2px 6px', color: col.stroke, background: col.stroke + '18' }}>Graduate</span>}
+        {course.planned  && <span style={{ fontSize: '8px', fontFamily: 'monospace', fontWeight: 700, border: '1px solid ' + col.dot + '40', borderRadius: '4px', padding: '2px 6px', color: col.dot + 'cc', background: col.dot + '12' }}>Planned</span>}
+        {course.deck     && <span style={{ fontSize: '8px', fontFamily: 'monospace', fontWeight: 700, border: '1px solid ' + col.dot + '60', borderRadius: '4px', padding: '2px 6px', color: col.dot, background: col.dot + '20' }}>Anki deck</span>}
       </div>
-      <p className="text-sm font-bold leading-snug mb-2" style={{ color: col.text }}>{course.name}</p>
-      <p className="text-xs leading-relaxed" style={{ color: col.text + 'b0' }}>{course.blurb}</p>
+      <p style={{ fontSize: '14px', fontWeight: 700, lineHeight: 1.3, marginBottom: '8px', color: col.text }}>{course.name}</p>
+      <p style={{ fontSize: '12px', lineHeight: 1.6, color: col.text + 'b0' }}>{course.blurb}</p>
       {course.deck && <FlashCardViewer deck={course.deck} color={col} />}
     </div>
   );

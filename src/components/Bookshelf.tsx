@@ -104,6 +104,30 @@ const BOOKS: Book[] = [
     note2: "The King's Cross chapter, where Harry speaks with Dumbledore between life and death, is the best scene in the series. Rowling answers almost every remaining question about the mythology in a conversation that feels quiet and gentle and final. Snape's memories in the pensieve restructure everything that came before them. The epilogue is fine. It does exactly one thing: it tells you the world continued and the people in it built ordinary lives. That is the right note to end on after seven books about a war.",
     blurb: "Harry, Ron, and Hermione set out to hunt and destroy Voldemort's Horcruxes in a race to end the war.",
     spineW: 41, spineAccent: '#581c87', buyUrl: 'https://www.amazon.com/dp/0545010225' },
+  { id: 'meditations', genres: ['Philosophy', 'Stoicism', 'Autobiography'], title: 'Meditations', shortTitle: 'Meditations', author: 'Marcus Aurelius', isbn: '9780140449334',
+    section: 'nontechnical', status: 'read',
+    note: 'What strikes you immediately reading Meditations is that it was never meant to be read by anyone else. Marcus is not making arguments to persuade you. He is reminding himself of things he already knows and keeps forgetting. That gap between knowing something and actually acting on it is what the whole book is about. The entries are short, sometimes just a sentence, and many of them are repetitive in a way that feels intentional. He is drilling the same ideas until they stay down. What they are drilling against is the specific texture of power: the flattery, the impatience, the temptation to treat other people as obstacles rather than participants in the same struggling situation.',
+    note2: 'The Stoic physics that underpins the ethics is mostly invisible to modern readers and I think that is fine. The useful content is the practical psychology. He keeps returning to the idea that you can only control your response to circumstances and not the circumstances themselves, and he keeps returning to it because he kept failing to remember it. There is something honest in that repetition that most philosophical writing lacks. The book does not promise that Stoic practice is easy or that it resolves cleanly into contentment. It just keeps insisting that it is worth doing anyway.',
+    blurb: "Marcus Aurelius's private journals, written to discipline himself rather than to be published, are one of the most direct records of a mind trying to live according to its principles.",
+    spineW: 22, spineAccent: '#3b1f5e', buyUrl: 'https://www.amazon.com/dp/0140449337' },
+  { id: 'republic', genres: ['Philosophy', 'Political Philosophy', 'Classical'], title: 'The Republic', shortTitle: 'The Republic', author: 'Plato', isbn: '9780140455113',
+    section: 'nontechnical', status: 'read',
+    note: 'The Republic is a harder book than its reputation suggests. People remember the allegory of the cave and the three-part soul and the philosopher-kings, but what actually carries the argument is Socrates persistently dismantling whatever position his interlocutors advance before replacing it with something more complicated. The structure is not lecture but interrogation. The early books where Thrasymachus argues that justice is simply the advantage of the stronger are genuinely difficult to dismiss, and Plato knows it, which is why he does not really dismiss them so much as change the subject to a city-scale analogy that arguably never fully reconnects to the original question.',
+    note2: 'The parts of The Republic that age least well are the parts about poetry and imitation and the structure of the ideal city. The parts that age best are about the psychology of different political types and how they degrade into each other. The portrait of the tyrant in Book IX is one of the most unsettling pieces of political analysis I have read anywhere. The point is that the tyrant is not powerful but enslaved, to appetite and fear and the need for continuous validation. Plato was describing a recognizable personality type and the recognition still works.',
+    blurb: "Plato's investigation of justice, the structure of the ideal state, and the nature of the soul, conducted through a long dialogue that ranges from education to metaphysics to the psychology of tyranny.",
+    spineW: 30, spineAccent: '#3d4a1e', buyUrl: 'https://www.amazon.com/dp/0140455116' },
+  { id: 'beyond-good-evil', genres: ['Philosophy', 'Ethics', 'Cultural Criticism'], title: 'Beyond Good and Evil', shortTitle: 'Beyond Good & Evil', author: 'Friedrich Nietzsche', isbn: '9780679724650',
+    section: 'nontechnical', status: 'read',
+    note: 'Nietzsche is a harder read than people expect because he writes in short numbered sections rather than sustained argument, which means you can dip in, take an aphorism, and miss the larger project entirely. The project in Beyond Good and Evil is to examine what philosophers have actually been doing when they claim to be pursuing truth, and the answer he keeps arriving at is defending their pre-existing values with elaborate post-hoc reasoning. That is a genuinely useful critique and it has not aged. The perspectivism runs through everything: there is no view from nowhere, and every claim about what is true or good is a claim made from somewhere by someone with something at stake.',
+    note2: "The master-slave morality section is the most controversial part and also the most frequently misread. Nietzsche is not celebrating cruelty or hierarchy. He is doing genealogy, trying to understand how values emerge from social conditions rather than from reason. The critique of Christian morality is specifically a critique of resentment dressed up as virtue, which is a different target than most people assume when they invoke him. The writing can be exhausting because it is relentlessly ironized, but the irony is doing work. He does not want you to trust the author any more than he wants you to trust the philosophical tradition he is attacking.",
+    blurb: 'Nietzsche examines the assumptions underlying Western philosophy and morality, arguing that what passes for objective truth is usually the disguised preferences of particular types of people.',
+    spineW: 26, spineAccent: '#1c1c1c', buyUrl: 'https://www.amazon.com/dp/0679724656' },
+  { id: 'myth-of-sisyphus', genres: ['Philosophy', 'Existentialism', 'Essay'], title: 'The Myth of Sisyphus', shortTitle: 'Myth of Sisyphus', author: 'Albert Camus', isbn: '9780679733737',
+    section: 'nontechnical', status: 'read',
+    note: 'Camus opens with the claim that the only serious philosophical question is whether life is worth living, and then spends the rest of the book arguing that the question itself is confused. The absurd is not a property of the world or of human consciousness but of the collision between the two: the mind demands meaning and the world is indifferent to the demand. What he is arguing against throughout is the various ways philosophers have tried to resolve this tension by leaping to something beyond it, whether God or reason or historical necessity. He calls these leaps philosophical suicide, which is a good phrase for a real problem.',
+    note2: 'The Sisyphus section at the end is short and the conclusion is deliberately provocative. One must imagine Sisyphus happy. What Camus means is not that Sisyphus is content but that the full recognition of the absurdity of the task, acknowledged rather than evaded, is itself a form of freedom. The scorn of the gods is answered by continuing anyway. I find this persuasive as a description of attitude and less persuasive as an argument for why the attitude is rational. But it is a book that earns its conclusion rather than asserting it, which is more than most philosophical texts manage.',
+    blurb: "Camus presents the absurd as the defining condition of human existence and argues that the honest response is neither suicide nor belief, but revolt: continuing anyway with full awareness of the situation.",
+    spineW: 21, spineAccent: '#7f1d1d', buyUrl: 'https://www.amazon.com/dp/0679733736' },
   { id: 'hobbit', genres: ['Fantasy', 'Epic', "Hero's Journey"], title: 'The Hobbit', shortTitle: 'The Hobbit', author: 'J.R.R. Tolkien', isbn: '9780547928227',
     section: 'nontechnical', status: 'read',
     note: 'The Hobbit has a narrative voice that does not exist anywhere else in Tolkien. It is warm and slightly ironic and directly addresses the reader, which LOTR never does. That voice is what makes it feel like a different kind of book even though it is set in the same world. Bilbo is a better protagonist than Frodo in some ways because his reluctance is genuinely comic. He keeps making tea and worrying about pocket handkerchiefs while dwarves are making plans to reclaim a mountain full of dragon. The way his courage gradually assembles itself without him noticing is quietly done.',
@@ -727,14 +751,48 @@ function ShelfRow({ row, onOpen }: { row: Book[]; onOpen: (b: Book) => void }) {
                 onMouseEnter={() => setHovered(book.id)}
                 onMouseLeave={() => setHovered(null)}
                 className="relative flex-shrink-0 cursor-pointer focus:outline-none"
-                title={book.title}
                 style={{
                   width: book.spineW, height: SHELF_H,
                   transform: isHov ? 'translateY(-14px)' : isToRead ? 'translateY(-4px)' : 'translateY(0)',
                   opacity: isToRead && !isHov ? 0.55 : 1,
                   transition: 'transform 0.25s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s, box-shadow 0.2s',
                   boxShadow: isHov ? `0 12px 28px ${book.spineAccent}55, 0 4px 10px rgba(0,0,0,0.25)` : '0 2px 6px rgba(0,0,0,0.12)',
+                  zIndex: isHov ? 20 : 1,
                 }}>
+
+                {isHov && (
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 'calc(100% + 14px)',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: 190,
+                    background: 'rgba(2, 8, 23, 0.93)',
+                    backdropFilter: 'blur(14px)',
+                    border: `1px solid ${book.spineAccent}45`,
+                    borderRadius: 10,
+                    padding: '10px 13px',
+                    pointerEvents: 'none',
+                    zIndex: 30,
+                    boxShadow: `0 12px 40px rgba(0,0,0,0.6), 0 0 0 0.5px ${book.spineAccent}20`,
+                    textAlign: 'left',
+                  }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: '#f0f9ff', marginBottom: 1, lineHeight: 1.3, userSelect: 'none' }}>
+                      {book.title}
+                    </p>
+                    <p style={{ fontSize: 9, color: 'rgba(148,163,184,0.85)', marginBottom: 8, fontStyle: 'italic', userSelect: 'none' }}>
+                      {book.author}
+                    </p>
+                    <div style={{ width: '100%', height: '0.5px', background: `${book.spineAccent}35`, marginBottom: 8 }} />
+                    <p style={{ fontSize: 8, fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(100,116,139,1)', marginBottom: 5, userSelect: 'none' }}>
+                      About
+                    </p>
+                    <p style={{ fontSize: 10, color: 'rgba(186,230,253,0.82)', lineHeight: 1.55, userSelect: 'none' }}>
+                      {book.blurb}
+                    </p>
+                  </div>
+                )}
+
                 <div className="w-full h-full rounded-t-sm flex items-center justify-center relative overflow-hidden"
                   style={{ background: `linear-gradient(to right, ${book.spineAccent}22, ${book.spineAccent}18)`, borderLeft: `3px solid ${book.spineAccent}`, borderTop: `1px solid ${book.spineAccent}44`, borderRight: `1px solid ${book.spineAccent}22` }}>
                   <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to right, rgba(255,255,255,0.04) 0%, transparent 40%, rgba(0,0,0,0.08) 100%)' }} />

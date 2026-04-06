@@ -25,7 +25,7 @@ import CourseGraph from '../components/CourseGraph';
         </button>
         <button id="btn-graph"
           class="cursor-pointer px-4 py-1.5 rounded-lg text-xs font-mono font-bold uppercase tracking-widest transition-all duration-200
-                 text-sky-400 dark:text-sky-600 border border-sky-100 dark:border-sky-900 hover:border-sky-300 dark:hover:border-sky-700">
+                 text-sky-500 dark:text-sky-600 border border-sky-200 dark:border-sky-900 hover:border-sky-300 dark:hover:border-sky-700">
           Graph
         </button>
       </div>
@@ -50,7 +50,7 @@ import CourseGraph from '../components/CourseGraph';
     const panelGraph = document.getElementById('panel-graph');
     if (!btnList || !btnGraph || !panelList || !panelGraph) return;
     const active   = ['bg-sky-100', 'dark:bg-sky-900', 'text-sky-700', 'dark:text-sky-300', 'border-sky-200', 'dark:border-sky-700'];
-    const inactive = ['text-sky-400', 'dark:text-sky-600', 'border-sky-100', 'dark:border-sky-900'];
+    const inactive = ['text-sky-500', 'dark:text-sky-600', 'border-sky-200', 'dark:border-sky-900'];
     const setView = (view: 'list' | 'graph') => {
       const isGraph = view === 'graph';
       panelList.classList.toggle('hidden', isGraph);
