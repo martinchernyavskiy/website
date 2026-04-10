@@ -536,6 +536,16 @@ export default function KnowledgeMap() {
   const settledRef  = useRef(false);
   const nodeIdxMap  = useRef(new Map(physRef.current.map((n, i) => [n.id, i])));
   const graphFocusedRef = useRef(false);
+  const selectedRef     = useRef<string | null>(null);
+  useEffect(() => { selectedRef.current = selected; }, [selected]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const nodeId = params.get('node');
+    if (nodeId && ALL_CONCEPTS.find(c => c.id === nodeId)) {
+      setTimeout(() => focusNode(nodeId), 600);
+    }
+  }, []);
 
   const visibleConcepts = ALL_CONCEPTS.filter(c => activeGroups.has(c.group));
   const visibleIds      = new Set(visibleConcepts.map(c => c.id));
@@ -645,6 +655,7 @@ export default function KnowledgeMap() {
     };
     const onDown = (e: KeyboardEvent) => {
       if (!graphFocusedRef.current) return;
+      if (selectedRef.current) return;
       if ((e.target as HTMLElement).tagName === 'INPUT') return;
       if (['w','a','s','d','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) { e.preventDefault(); keys.add(e.key); if (raf === 0) raf = requestAnimationFrame(loop); }
     };
@@ -744,16 +755,17 @@ export default function KnowledgeMap() {
       const n = physRef.current.find(n => n.id === dragRef.current!.id)!;
       n.x = w.x - dragRef.current.ox; n.y = w.y - dragRef.current.oy; n.vx = 0; n.vy = 0;
     } else if (activePointersRef.current.size >= 2 && pinchStartRef.current) {
-      // Pinch zoom
       const pts     = Array.from(activePointersRef.current.values());
       const dist    = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+      const midX    = (pts[0].x + pts[1].x) / 2;
+      const midY    = (pts[0].y + pts[1].y) / 2;
       const factor  = dist / pinchStartRef.current.dist;
       const newZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, pinchStartRef.current.zoom * factor));
       const svgEl   = svgRef.current; if (!svgEl) return;
       const rect    = svgEl.getBoundingClientRect();
-      const lx = (pinchStartRef.current.cx - rect.left) * (W / rect.width);
-      const ly = (pinchStartRef.current.cy - rect.top)  * (H / rect.height);
-      const oldZoom = pinchStartRef.current.zoom;
+      const lx      = (midX - rect.left) * (W / rect.width);
+      const ly      = (midY - rect.top)  * (H / rect.height);
+      const oldZoom = zoomRef.current;
       const wx = (lx - W / 2 - panRef.current.x) / oldZoom;
       const wy = (ly - H / 2 - panRef.current.y) / oldZoom;
       const np = clampPan(lx - W / 2 - wx * newZoom, ly - H / 2 - wy * newZoom);

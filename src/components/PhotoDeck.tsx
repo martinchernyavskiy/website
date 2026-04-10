@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import CatFace from './CatFace'; 
 
 const cards = [
-  { id: 1, label: 'photo_01', color: 'bg-sky-50 dark:bg-sky-950/40' },
-  { id: 2, label: 'photo_02', color: 'bg-indigo-50 dark:bg-indigo-950/40' },
-  { id: 3, label: 'photo_03', color: 'bg-slate-50 dark:bg-slate-900/40' },
+  { id: 1, src: '/photos/1.JPG', label: 'lake mendota', scale: 1.25, objectPosition: 'center 40%' },
+  { id: 2, src: '/photos/2.JPG', label: 'beijing',      scale: 1.0, objectPosition: 'center top'  },
+  { id: 3, src: '/photos/3.JPG', label: 'my cats',          scale: 1.0, objectPosition: 'center top'  },
 ];
 
 export default function PhotoDeck() {
@@ -39,16 +38,28 @@ export default function PhotoDeck() {
       {cards.map((card, index) => {
         const relativeIndex = (index - activeIndex + cards.length) % cards.length;
         return (
-          <div 
+          <div
             key={card.id}
-            className={`absolute inset-0 bg-white dark:bg-sky-900 p-3 pb-12 rounded-sm 
-                        border border-slate-200 dark:border-sky-800 
-                        transition-all duration-700 cubic-bezier(0.34, 1.56, 0.64, 1) origin-bottom
-                        ${getCardStyle(index)} 
+            className={`absolute inset-0 bg-white dark:bg-sky-900 p-3 pb-12 rounded-sm
+                        border border-slate-200 dark:border-sky-800
+                        transition-all duration-700 origin-bottom
+                        ${getCardStyle(index)}
                         ${relativeIndex === 0 ? 'group-hover/deck:rotate-0' : ''}`}
           >
-            <div className={`w-full h-full flex items-center justify-center rounded-sm transition-colors duration-700 ${card.color}`}>
-              <CatFace size={80} className="text-sky-300 dark:text-sky-700 opacity-40" />
+            <div className="w-full h-full rounded-sm overflow-hidden">
+              <img
+                src={card.src}
+                alt={card.label}
+                draggable={false}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: card.objectPosition,
+                  transform: `scale(${card.scale})`,
+                  transformOrigin: 'center center',
+                }}
+              />
             </div>
             <div className="absolute bottom-3 left-0 right-0 text-center">
               <span className="text-xs font-mono uppercase tracking-widest text-slate-400 dark:text-sky-700">{card.label}</span>

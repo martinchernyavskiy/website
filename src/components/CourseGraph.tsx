@@ -199,13 +199,15 @@ export default function CourseGraph() {
 
   const courses = showPlanned ? ALL_COURSES : ALL_COURSES.filter(c => !c.planned);
 
-  const physRef     = useRef<PhysNode[]>(ALL_COURSES.map(c => ({ id: c.id, x: c.x, y: c.y, vx: 0, vy: 0 })));
-  const dragRef     = useRef<{ id: string; ox: number; oy: number } | null>(null);
-  const panStartRef = useRef<{ mx: number; my: number; px: number; py: number } | null>(null);
-  const panRef      = useRef({ x: 0, y: 0 });
-  const zoomRef     = useRef(1.0);
-  const svgRef      = useRef<SVGSVGElement>(null);
-  const rafRef      = useRef<number>(0);
+  const physRef          = useRef<PhysNode[]>(ALL_COURSES.map(c => ({ id: c.id, x: c.x, y: c.y, vx: 0, vy: 0 })));
+  const dragRef          = useRef<{ id: string; ox: number; oy: number } | null>(null);
+  const panStartRef      = useRef<{ mx: number; my: number; px: number; py: number } | null>(null);
+  const activePointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchStartRef    = useRef<{ dist: number; zoom: number } | null>(null);
+  const panRef           = useRef({ x: 0, y: 0 });
+  const zoomRef          = useRef(1.0);
+  const svgRef           = useRef<SVGSVGElement>(null);
+  const rafRef           = useRef<number>(0);
 
   const clampPan = (x: number, y: number) => {
     const limit = PAN_LIMIT * zoomRef.current;
@@ -276,9 +278,25 @@ export default function CourseGraph() {
     const el = svgRef.current; if (!el) return;
     const onWheel = (e: WheelEvent) => {
       e.preventDefault(); e.stopPropagation();
-      const delta = e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP;
-      const next  = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, +(zoomRef.current + delta).toFixed(2)));
-      zoomRef.current = next; setZoom(next);
+      const svg = svgRef.current; if (!svg) return;
+      const rect    = svg.getBoundingClientRect();
+      const svgScale = W / rect.width;
+      if (e.ctrlKey) {
+        const rawDelta = Math.max(-30, Math.min(30, e.deltaY));
+        const factor   = 1 - rawDelta * 0.022;
+        const oldZoom  = zoomRef.current;
+        const newZoom  = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, oldZoom * factor));
+        const lx = (e.clientX - rect.left) * svgScale;
+        const ly = (e.clientY - rect.top)  * (H / rect.height);
+        const wx = (lx - W / 2 - panRef.current.x) / oldZoom;
+        const wy = (ly - H / 2 - panRef.current.y) / oldZoom;
+        const np = clampPan(lx - W / 2 - wx * newZoom, ly - H / 2 - wy * newZoom);
+        zoomRef.current = newZoom; panRef.current = np; setZoom(newZoom); setPan(np);
+      } else {
+        const dx = -e.deltaX * svgScale, dy = -e.deltaY * svgScale;
+        const clamped = clampPan(panRef.current.x + dx, panRef.current.y + dy);
+        panRef.current = clamped; setPan(clamped);
+      }
     };
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => el.removeEventListener('wheel', onWheel);
@@ -305,15 +323,42 @@ export default function CourseGraph() {
   const onSvgPointerDown = (e: React.PointerEvent) => {
     if (dragRef.current) return;
     (e.currentTarget as Element).setPointerCapture(e.pointerId);
-    panStartRef.current = { mx: e.clientX, my: e.clientY, px: panRef.current.x, py: panRef.current.y };
-    setPanning(true);
+    activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (activePointersRef.current.size >= 2) {
+      const pts  = Array.from(activePointersRef.current.values());
+      const dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+      pinchStartRef.current = { dist, zoom: zoomRef.current };
+      panStartRef.current = null;
+      setPanning(false);
+    } else {
+      pinchStartRef.current = null;
+      panStartRef.current = { mx: e.clientX, my: e.clientY, px: panRef.current.x, py: panRef.current.y };
+      setPanning(true);
+    }
   };
 
   const onSvgPointerMove = (e: React.PointerEvent) => {
+    activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (dragRef.current) {
       const w = toWorld(e.clientX, e.clientY);
       const n = physRef.current.find(n => n.id === dragRef.current!.id)!;
       n.x = w.x - dragRef.current.ox; n.y = w.y - dragRef.current.oy; n.vx = 0; n.vy = 0;
+    } else if (activePointersRef.current.size >= 2 && pinchStartRef.current) {
+      const pts     = Array.from(activePointersRef.current.values());
+      const dist    = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+      const midX    = (pts[0].x + pts[1].x) / 2;
+      const midY    = (pts[0].y + pts[1].y) / 2;
+      const factor  = dist / pinchStartRef.current.dist;
+      const newZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, pinchStartRef.current.zoom * factor));
+      const svgEl   = svgRef.current; if (!svgEl) return;
+      const rect    = svgEl.getBoundingClientRect();
+      const lx      = (midX - rect.left) * (W / rect.width);
+      const ly      = (midY - rect.top)  * (H / rect.height);
+      const oldZoom = zoomRef.current;
+      const wx = (lx - W / 2 - panRef.current.x) / oldZoom;
+      const wy = (ly - H / 2 - panRef.current.y) / oldZoom;
+      const np = clampPan(lx - W / 2 - wx * newZoom, ly - H / 2 - wy * newZoom);
+      zoomRef.current = newZoom; panRef.current = np; setZoom(newZoom); setPan(np);
     } else if (panStartRef.current) {
       const svg = svgRef.current; if (!svg) return;
       const rect = svg.getBoundingClientRect(), scaleX = W / rect.width;
@@ -324,7 +369,17 @@ export default function CourseGraph() {
     }
   };
 
-  const onSvgPointerUp = () => { dragRef.current = null; panStartRef.current = null; setDragging(false); setPanning(false); };
+  const onSvgPointerUp = (e: React.PointerEvent) => {
+    activePointersRef.current.delete(e.pointerId);
+    if (activePointersRef.current.size < 2) pinchStartRef.current = null;
+    if (activePointersRef.current.size === 0) { dragRef.current = null; panStartRef.current = null; setDragging(false); setPanning(false); }
+  };
+
+  const onSvgPointerLeave = () => {
+    activePointersRef.current.clear(); pinchStartRef.current = null;
+    dragRef.current = null; panStartRef.current = null;
+    setDragging(false); setPanning(false);
+  };
 
   const ancestors      = selected ? getAncestors(selected, courses) : new Set<string>();
   const selectedCourse = courses.find(c => c.id === selected) ?? null;
@@ -405,7 +460,7 @@ export default function CourseGraph() {
         <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="w-full h-auto block"
           style={{ cursor: dragging || panning ? 'grabbing' : 'grab', touchAction: 'none' }}
           onPointerDown={onSvgPointerDown} onPointerMove={onSvgPointerMove}
-          onPointerUp={onSvgPointerUp} onPointerLeave={onSvgPointerUp}>
+          onPointerUp={onSvgPointerUp} onPointerLeave={onSvgPointerLeave}>
           <defs>
             <marker id="arr"    markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#38bdf860" /></marker>
             <marker id="arr-on" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#7dd3fc"   /></marker>

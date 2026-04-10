@@ -51,14 +51,17 @@ import CourseGraph from '../components/CourseGraph';
     if (!btnList || !btnGraph || !panelList || !panelGraph) return;
     const active   = ['bg-sky-100', 'dark:bg-sky-900', 'text-sky-700', 'dark:text-sky-300', 'border-sky-200', 'dark:border-sky-700'];
     const inactive = ['text-sky-500', 'dark:text-sky-600', 'border-sky-200', 'dark:border-sky-900'];
-    const setView = (view: 'list' | 'graph') => {
+    const setView = (view: 'list' | 'graph', save = true) => {
       const isGraph = view === 'graph';
       panelList.classList.toggle('hidden', isGraph);
       panelGraph.classList.toggle('hidden', !isGraph);
       const on = isGraph ? btnGraph : btnList, off = isGraph ? btnList : btnGraph;
       on.classList.add(...active);   on.classList.remove(...inactive);
       off.classList.remove(...active); off.classList.add(...inactive);
+      if (save) localStorage.setItem('courses-view', view);
     };
+    const saved = localStorage.getItem('courses-view') as 'list' | 'graph' | null;
+    if (saved === 'graph') setView('graph', false);
     btnList.addEventListener('click',  () => setView('list'));
     btnGraph.addEventListener('click', () => setView('graph'));
   }

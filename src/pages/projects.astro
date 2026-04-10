@@ -99,6 +99,30 @@ const projects: Project[] = [
 const doneProjects    = projects.filter(p => p.status === 'live');
 const plannedProjects = projects.filter(p => p.status !== 'live');
 
+const TECH_COLORS: Record<string, { bg: string; border: string; text: string }> = {
+  'C++':        { bg: '#00569d12', border: '#00569d50', text: '#4fc3f7' },
+  'C++17':      { bg: '#00569d12', border: '#00569d50', text: '#4fc3f7' },
+  'C++11':      { bg: '#00569d12', border: '#00569d50', text: '#4fc3f7' },
+  'CMake':      { bg: '#06474712', border: '#06474760', text: '#4db6ac' },
+  'Go':         { bg: '#00acd712', border: '#00acd750', text: '#4dd0e1' },
+  'Python':     { bg: '#3572a512', border: '#3572a550', text: '#81c784' },
+  'React':      { bg: '#61dafb12', border: '#61dafb50', text: '#61dafb' },
+  'FastAPI':    { bg: '#05998212', border: '#05998250', text: '#4db6ac' },
+  'PostgreSQL': { bg: '#33679812', border: '#33679850', text: '#64b5f6' },
+  'Docker':     { bg: '#2496ed12', border: '#2496ed50', text: '#64b5f6' },
+  'GTest':      { bg: '#4caf5012', border: '#4caf5050', text: '#81c784' },
+  'Linux perf': { bg: '#f4433612', border: '#f4433650', text: '#ef9a9a' },
+  'AVX-512':    { bg: '#ff572212', border: '#ff572250', text: '#ffab91' },
+  'sqlglot':    { bg: '#9c27b012', border: '#9c27b050', text: '#ce93d8' },
+  'YAML':       { bg: '#cf222e12', border: '#cf222e50', text: '#f48fb1' },
+};
+
+function getTechStyle(tech: string): string {
+  const c = TECH_COLORS[tech];
+  if (c) return `background:${c.bg};border:1px solid ${c.border};color:${c.text}`;
+  return 'border:1px solid rgb(186 230 253 / 0.3);color:rgb(125 211 252);background:rgb(14 165 233 / 0.06)';
+}
+
 const statusLabel: Record<Project['status'], string> = {
   live: 'Live',
   'in-progress': 'In Progress',
@@ -204,7 +228,7 @@ const statusDot: Record<Project['status'], string> = {
 
             <div class="flex flex-wrap gap-1.5">
               {project.stack.map((tech) => (
-                <span class="text-[9px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-sky-200 dark:border-sky-800 text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/30">
+                <span class="text-[9px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded" style={getTechStyle(tech)}>
                   {tech}
                 </span>
               ))}
@@ -220,7 +244,7 @@ const statusDot: Record<Project['status'], string> = {
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {plannedProjects.map((project) => (
         <article
-          class="group relative rounded-2xl border border-sky-200 dark:border-sky-800 bg-white/60 dark:bg-sky-950/40 hover:border-sky-400 dark:hover:border-sky-600 hover:bg-white dark:hover:bg-sky-900/30 hover:shadow-xl hover:shadow-sky-500/5 transition-all duration-300 overflow-hidden"
+          class="group relative rounded-2xl border border-sky-200/60 dark:border-sky-800/60 bg-white/30 dark:bg-sky-950/20 hover:border-sky-300 dark:hover:border-sky-700 hover:bg-white/50 dark:hover:bg-sky-950/30 transition-all duration-300 overflow-hidden opacity-60 hover:opacity-90"
         >
           <div
             class="absolute left-0 top-[3px] bottom-[3px] w-[3px] rounded-full transition-opacity duration-300 opacity-70 group-hover:opacity-100"
@@ -296,7 +320,7 @@ const statusDot: Record<Project['status'], string> = {
 
             <div class="flex flex-wrap gap-1.5">
               {project.stack.map((tech) => (
-                <span class="text-[9px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-sky-200 dark:border-sky-800 text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/30">
+                <span class="text-[9px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded" style={getTechStyle(tech)}>
                   {tech}
                 </span>
               ))}
