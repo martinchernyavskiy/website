@@ -261,7 +261,6 @@ const ALL_EDGES: KMEdge[] = [
   { from: "neural-nets", to: "rl", type: "applied-in" },
 ];
 
-// Card data imported from shared flashcards file
 import { ALL_DECKS as _DECKS } from '../lib/flashcards';
 const ALL_CARDS: Record<string, Card[]> = Object.fromEntries(_DECKS.map(d => [d.id, d.cards]));
 
@@ -312,27 +311,23 @@ const ZOOM_MIN = 0.3; const ZOOM_MAX = 3.0; const ZOOM_STEP = 0.12;
 const PAN_LIMIT = 700;
 const ENERGY_THRESHOLD = 0.4;
 
-// Each group's cluster center
 const GROUP_ANCHORS: Record<string, { x: number; y: number }> = {
-  // Row 1 — top: highest abstraction
   'ai':           { x: 450,  y: 175 },
   'distributed':  { x: 1120, y: 175 },
-  // Row 2 — data & networking
   'data':         { x: 630,  y: 400 },
   'networking':   { x: 1200, y: 400 },
-  // Row 3 — OS & concurrency
   'concurrency':  { x: 530,  y: 620 },
   'os':           { x: 940,  y: 620 },
-  // Row 4 — memory & systems programming
   'memory':       { x: 280,  y: 860 },
   'systems-prog': { x: 760,  y: 860 },
-  // Row 5 — bottom: hardware foundations
   'hardware':     { x: 740,  y: 1060 },
 };
 
 const LABEL_Y_OFFSET: Record<string, number> = {
   'hardware': 60,
 };
+
+// Derived from actual flashcard data; stays in sync automatically
 const GROUP_STATS: Record<string, { cards: number; concepts: number }> = Object.fromEntries(
   Object.keys(GROUP_LABELS).map(grp => {
     const concepts = ALL_CONCEPTS.filter(c => c.group === grp);
@@ -341,6 +336,7 @@ const GROUP_STATS: Record<string, { cards: number; concepts: number }> = Object.
   })
 );
 const TOTAL_CARDS = Object.values(GROUP_STATS).reduce((s, v) => s + v.cards, 0);
+
 function FlashCardViewer({ cards, color }: { cards: Card[]; color: typeof GROUP_COLORS[string] }) {
   const [index,   setIndex]   = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -360,8 +356,6 @@ function FlashCardViewer({ cards, color }: { cards: Card[]; color: typeof GROUP_
       <span style={{ fontSize: '9px', fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: color.text + '80' }}>
         Anki · {index + 1} / {total}
       </span>
-
-      {/* Card face — uses a grid stack so the container height matches whichever face is visible */}
       <div style={{ position: 'relative', width: '100%', cursor: 'pointer', userSelect: 'none', borderRadius: '8px', border: '1px solid ' + color.stroke + '40', overflow: 'hidden', background: color.fill, display: 'grid' }}
         onClick={e => { e.stopPropagation(); setFlipped(f => !f); }}>
         {[false, true].map(side => (
@@ -373,7 +367,6 @@ function FlashCardViewer({ cards, color }: { cards: Card[]; color: typeof GROUP_
               opacity: flipped === side ? 1 : 0,
               transition: 'opacity 0.15s ease',
               pointerEvents: flipped === side ? 'auto' : 'none',
-              // Invisible face still occupies space so container matches active face height
               visibility: flipped === side ? 'visible' : 'hidden',
             }}>
             <span style={{ fontSize: '8px', fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.12em', opacity: 0.4, marginBottom: '6px', color: color.text }}>
@@ -385,7 +378,6 @@ function FlashCardViewer({ cards, color }: { cards: Card[]; color: typeof GROUP_
           </div>
         ))}
       </div>
-
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <button onClick={e => go(-1, e)} style={{ fontSize: '9px', fontFamily: 'monospace', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', border: '1px solid ' + color.stroke + '40', opacity: 0.5, cursor: 'pointer', color: color.text, background: 'none', WebkitAppearance: 'none', appearance: 'none' }}>← prev</button>
         <span style={{ fontSize: '9px', fontFamily: 'monospace', opacity: 0.4, color: color.text }}>{index + 1} / {total}</span>
@@ -407,7 +399,6 @@ function DetailPanel({ concept, onClose }: { concept: Concept; onClose: () => vo
           <path d="M1 1L7 7M7 1L1 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
       </button>
-
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', paddingRight: '24px', flexWrap: 'wrap' }}>
         <span style={{ fontSize: '8px', fontFamily: 'monospace', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', padding: '2px 8px', borderRadius: '4px', border: '1px solid ' + col.stroke + '40', background: col.fill, color: col.text }}>
           {GROUP_LABELS[concept.group] ?? concept.group}
@@ -418,12 +409,10 @@ function DetailPanel({ concept, onClose }: { concept: Concept; onClose: () => vo
           </span>
         ))}
       </div>
-
       <p style={{ fontSize: '14px', fontWeight: 700, lineHeight: 1.3, marginBottom: '4px', color: col.text }}>{concept.label}</p>
       <p style={{ fontSize: '10px', fontFamily: 'monospace', opacity: 0.5, marginBottom: '8px', color: col.text }}>
         {cards.length} card{cards.length !== 1 ? 's' : ''}
       </p>
-
       {cards.length > 0 && <FlashCardViewer cards={cards} color={col} />}
     </div>
   );
@@ -435,7 +424,8 @@ function StatsBar({ onFocusNode, selectedId }: {
 }) {
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
   const [hoveredNode,   setHoveredNode]   = useState<string | null>(null);
-  const order = Object.keys(GROUP_STATS).sort((a, b) => GROUP_STATS[b].cards - GROUP_STATS[a].cards);
+  // Sort by card count descending; derived, never hardcoded
+  const order    = Object.keys(GROUP_STATS).sort((a, b) => GROUP_STATS[b].cards - GROUP_STATS[a].cards);
   const maxCards = Math.max(...order.map(g => GROUP_STATS[g].cards));
 
   return (
@@ -460,84 +450,49 @@ function StatsBar({ onFocusNode, selectedId }: {
           return (
             <div key={grp}>
               {idx > 0 && <div style={{ borderTop: '1px solid rgba(14,165,233,0.12)', marginBottom: '16px' }} />}
-
-              {/* Bar row */}
               <button onClick={() => setExpandedGroup(isOpen ? null : grp)}
                 style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', minWidth: 0, background: 'none', border: 'none', padding: 0, WebkitAppearance: 'none', appearance: 'none', outline: 'none' }}>
-
-                {/* Label */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, width: '30%', minWidth: 0 }}>
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0, background: col.dot }} />
                   <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 700, color: col.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {GROUP_LABELS[grp]}
                   </span>
                 </div>
-
-                {/* Bar */}
                 <div style={{ flex: 1, minWidth: 0, height: '16px', borderRadius: '2px', position: 'relative', background: col.fill + '60' }}>
                   <div style={{ height: '100%', borderRadius: '2px', width: barPct + '%', background: col.dot, opacity: 0.8, transition: 'width 0.5s' }} />
                   <span style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', fontSize: '9px', fontFamily: 'monospace', fontWeight: 700, color: col.text, mixBlendMode: 'screen' }}>
                     {pct.toFixed(1)}%
                   </span>
                 </div>
-
-                {/* Counts */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                  <span style={{ fontSize: '9px', fontFamily: 'monospace', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: col.dot }}>
-                    {stat.cards}
-                  </span>
+                  <span style={{ fontSize: '9px', fontFamily: 'monospace', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: col.dot }}>{stat.cards}</span>
                   <span className="hidden sm:inline" style={{ fontSize: '8px', fontFamily: 'monospace', color: 'rgba(14,165,233,0.3)' }}>cards</span>
                   <span className="hidden sm:inline" style={{ fontSize: '8px', fontFamily: 'monospace', color: 'rgba(14,165,233,0.15)', margin: '0 2px' }}>·</span>
-                  <span className="hidden sm:inline" style={{ fontSize: '9px', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums', color: 'rgba(14,165,233,0.38)' }}>
-                    {stat.concepts}
-                  </span>
+                  <span className="hidden sm:inline" style={{ fontSize: '9px', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums', color: 'rgba(14,165,233,0.38)' }}>{stat.concepts}</span>
                   <span className="hidden sm:inline" style={{ fontSize: '8px', fontFamily: 'monospace', color: 'rgba(14,165,233,0.22)' }}>nodes</span>
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ marginLeft: '4px', flexShrink: 0, color: col.dot, opacity: 0.6, transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
                     <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
               </button>
-
-              {/* Dropdown concept list */}
               {isOpen && (
                 <div style={{ marginTop: '6px', marginLeft: '16px', paddingLeft: '12px', borderLeft: '2px solid ' + col.dot + '40', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                   {concepts.map(c => {
                     const cardCount = ALL_CARDS[c.id]?.length ?? 0;
-                    const isSel   = selectedId === c.id;
-                    const isHov   = hoveredNode === c.id;
-                    const active  = isSel || isHov;
+                    const isSel = selectedId === c.id;
+                    const isHov = hoveredNode === c.id;
+                    const active = isSel || isHov;
                     return (
                       <button key={c.id}
                         onClick={() => onFocusNode(c.id)}
                         onMouseEnter={() => setHoveredNode(c.id)}
                         onMouseLeave={() => setHoveredNode(null)}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: '8px',
-                          padding: '4px 8px', borderRadius: '8px',
-                          textAlign: 'left', cursor: 'pointer', minWidth: 0, width: '100%',
-                          background: active ? col.dot + (isSel ? '25' : '15') : 'none',
-                          opacity: active ? 1 : 0.7, border: 'none',
-                          // Kill browser UA button appearance (gray bg, inset shadow, etc.)
-                          WebkitAppearance: 'none', appearance: 'none',
-                          outline: 'none', boxSizing: 'border-box',
-                        }}>
-                        <span style={{
-                          width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0,
-                          background: active ? col.dot : col.dot + '60',
-                          transform: isHov ? 'scale(1.3)' : 'scale(1)',
-                          transition: 'transform 0.15s',
-                        }} />
-                        <span style={{
-                          fontSize: '10px', fontFamily: 'monospace', flex: 1, minWidth: 0,
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                          color: active ? col.text : col.text + '90',
-                          fontWeight: active ? 700 : 500,
-                        }}>
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 8px', borderRadius: '8px', textAlign: 'left', cursor: 'pointer', minWidth: 0, width: '100%', background: active ? col.dot + (isSel ? '25' : '15') : 'none', opacity: active ? 1 : 0.7, border: 'none', WebkitAppearance: 'none', appearance: 'none', outline: 'none', boxSizing: 'border-box' }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0, background: active ? col.dot : col.dot + '60', transform: isHov ? 'scale(1.3)' : 'scale(1)', transition: 'transform 0.15s' }} />
+                        <span style={{ fontSize: '10px', fontFamily: 'monospace', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: active ? col.text : col.text + '90', fontWeight: active ? 700 : 500 }}>
                           {c.label}
                         </span>
-                        <span style={{ fontSize: '8px', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums', flexShrink: 0, color: col.dot + '70' }}>
-                          {cardCount}
-                        </span>
+                        <span style={{ fontSize: '8px', fontFamily: 'monospace', fontVariantNumeric: 'tabular-nums', flexShrink: 0, color: col.dot + '70' }}>{cardCount}</span>
                       </button>
                     );
                   })}
@@ -554,9 +509,12 @@ function StatsBar({ onFocusNode, selectedId }: {
 export default function KnowledgeMap() {
   const [selected,     setSelected]     = useState<string | null>(null);
   const [hovered,      setHovered]      = useState<string | null>(null);
-  const [mousePos,     setMousePos]     = useState({ x: 0, y: 0 }); // screen-space, relative to SVG container
+  const [mousePos,     setMousePos]     = useState({ x: 0, y: 0 });
   const [activeGroups, setActiveGroups] = useState<Set<string>>(new Set(Object.keys(GROUP_LABELS)));
   const [search,       setSearch]       = useState('');
+  // Multi-touch tracking refs for pinch-to-zoom
+  const activePointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchStartRef     = useRef<{ dist: number; zoom: number; cx: number; cy: number } | null>(null);
   const [zoom,         setZoom]         = useState(1.0);
   const [pan,          setPan]          = useState({ x: 0, y: 0 });
   const [dragging,     setDragging]     = useState(false);
@@ -577,6 +535,7 @@ export default function KnowledgeMap() {
   const rafRef      = useRef<number>(0);
   const settledRef  = useRef(false);
   const nodeIdxMap  = useRef(new Map(physRef.current.map((n, i) => [n.id, i])));
+  const graphFocusedRef = useRef(false);
 
   const visibleConcepts = ALL_CONCEPTS.filter(c => activeGroups.has(c.group));
   const visibleIds      = new Set(visibleConcepts.map(c => c.id));
@@ -597,17 +556,12 @@ export default function KnowledgeMap() {
       if (!visibleIds.has(n.id)) return;
       const grp    = ALL_CONCEPTS.find(c => c.id === n.id)?.group;
       const anchor = grp ? GROUP_ANCHORS[grp] : { x: W / 2, y: H / 2 };
-      if (anchor) {
-        n.x = anchor.x + (n.x - W / 2) * 0.15;
-        n.y = anchor.y + (n.y - H / 2) * 0.15;
-        n.vx = 0; n.vy = 0;
-      }
+      if (anchor) { n.x = anchor.x + (n.x - W / 2) * 0.15; n.y = anchor.y + (n.y - H / 2) * 0.15; n.vx = 0; n.vy = 0; }
     });
 
     const runStep = () => {
       const forces  = ns.map(() => ({ fx: 0, fy: 0 }));
       const visArr  = ns.filter(n => visibleIds.has(n.id));
-
       for (let i = 0; i < visArr.length; i++) {
         for (let j = i + 1; j < visArr.length; j++) {
           const dx = (visArr[j].x - visArr[i].x) || 0.01, dy = (visArr[j].y - visArr[i].y) || 0.01;
@@ -649,11 +603,7 @@ export default function KnowledgeMap() {
       return totalEnergy / Math.max(ns.filter(n => visibleIds.has(n.id)).length, 1);
     };
 
-    for (let i = 0; i < 150; i++) {
-      const energy = runStep();
-      if (energy < ENERGY_THRESHOLD) break;
-    }
-    // Sync positions state with the pre-warmed layout
+    for (let i = 0; i < 150; i++) { if (runStep() < ENERGY_THRESHOLD) break; }
     setPositions(Object.fromEntries(ns.map(n => [n.id, { x: n.x, y: n.y }])));
 
     const tick = () => {
@@ -663,35 +613,24 @@ export default function KnowledgeMap() {
       if (energy < ENERGY_THRESHOLD) { settledRef.current = true; setSettled(true); return; }
       rafRef.current = requestAnimationFrame(tick);
     };
-
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
   }, [activeGroups]);
 
-  const restartSim = useCallback(() => {
-    settledRef.current = false; setSettled(false);
-    cancelAnimationFrame(rafRef.current);
-  }, []);
+  const restartSim = useCallback(() => { settledRef.current = false; setSettled(false); cancelAnimationFrame(rafRef.current); }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (selected) { setSelected(null); }
-        else { setFullscreen(false); }
-      }
+      if (e.key === 'Escape') { if (selected) setSelected(null); else setFullscreen(false); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [selected]);
 
-  const graphFocusedRef = useRef(false); // true only when user has interacted with the graph
-
-  // WASD smooth pan — only when graph is focused
   useEffect(() => {
     const keys = new Set<string>();
     const PAN_SPEED = 8;
     let raf = 0;
-
     const loop = () => {
       let dx = 0, dy = 0;
       if (keys.has('a') || keys.has('ArrowLeft'))  dx =  PAN_SPEED;
@@ -699,92 +638,52 @@ export default function KnowledgeMap() {
       if (keys.has('w') || keys.has('ArrowUp'))    dy =  PAN_SPEED;
       if (keys.has('s') || keys.has('ArrowDown'))  dy = -PAN_SPEED;
       if (dx !== 0 || dy !== 0) {
-        const clamped = {
-          x: Math.max(-PAN_LIMIT * zoomRef.current, Math.min(PAN_LIMIT * zoomRef.current, panRef.current.x + dx)),
-          y: Math.max(-PAN_LIMIT * zoomRef.current, Math.min(PAN_LIMIT * zoomRef.current, panRef.current.y + dy)),
-        };
-        panRef.current = clamped;
-        setPan({ ...clamped });
+        const clamped = { x: Math.max(-PAN_LIMIT * zoomRef.current, Math.min(PAN_LIMIT * zoomRef.current, panRef.current.x + dx)), y: Math.max(-PAN_LIMIT * zoomRef.current, Math.min(PAN_LIMIT * zoomRef.current, panRef.current.y + dy)) };
+        panRef.current = clamped; setPan({ ...clamped });
       }
       raf = requestAnimationFrame(loop);
     };
-
     const onDown = (e: KeyboardEvent) => {
       if (!graphFocusedRef.current) return;
       if ((e.target as HTMLElement).tagName === 'INPUT') return;
-      if (['w','a','s','d','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
-        e.preventDefault();
-        keys.add(e.key);
-        if (raf === 0) raf = requestAnimationFrame(loop);
-      }
+      if (['w','a','s','d','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) { e.preventDefault(); keys.add(e.key); if (raf === 0) raf = requestAnimationFrame(loop); }
     };
-    const onUp = (e: KeyboardEvent) => {
-      keys.delete(e.key);
-      if (keys.size === 0) { cancelAnimationFrame(raf); raf = 0; }
-    };
-    // Lose focus when clicking outside the graph
+    const onUp = (e: KeyboardEvent) => { keys.delete(e.key); if (keys.size === 0) { cancelAnimationFrame(raf); raf = 0; } };
     const onDocClick = (e: MouseEvent) => {
       const graph = graphRef.current;
-      if (graph && !graph.contains(e.target as Node)) {
-        graphFocusedRef.current = false;
-        keys.clear(); cancelAnimationFrame(raf); raf = 0;
-      }
+      if (graph && !graph.contains(e.target as Node)) { graphFocusedRef.current = false; keys.clear(); cancelAnimationFrame(raf); raf = 0; }
     };
-
     window.addEventListener('keydown', onDown);
     window.addEventListener('keyup', onUp);
     document.addEventListener('click', onDocClick, true);
-    return () => {
-      window.removeEventListener('keydown', onDown);
-      window.removeEventListener('keyup', onUp);
-      document.removeEventListener('click', onDocClick, true);
-      cancelAnimationFrame(raf);
-    };
+    return () => { window.removeEventListener('keydown', onDown); window.removeEventListener('keyup', onUp); document.removeEventListener('click', onDocClick, true); cancelAnimationFrame(raf); };
   }, []);
 
-  // Lock page scroll when fullscreen, restore on exit
   useEffect(() => {
-    if (fullscreen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+    if (fullscreen) { document.body.style.overflow = 'hidden'; } else { document.body.style.overflow = ''; }
     return () => { document.body.style.overflow = ''; };
   }, [fullscreen]);
 
   useEffect(() => {
     const el = svgRef.current; if (!el) return;
     const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const svg  = svgRef.current; if (!svg) return;
+      e.preventDefault(); e.stopPropagation();
+      const svg = svgRef.current; if (!svg) return;
       const rect = svg.getBoundingClientRect();
       const svgScale = W / rect.width;
-
       if (e.ctrlKey) {
-        // Pinch-to-zoom: smooth & continuous, zooms toward cursor
         const rawDelta = Math.max(-30, Math.min(30, e.deltaY));
         const factor   = 1 - rawDelta * 0.022;
         const oldZoom  = zoomRef.current;
         const newZoom  = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, oldZoom * factor));
-        // Cursor in SVG-local coords
         const lx = (e.clientX - rect.left) * svgScale;
         const ly = (e.clientY - rect.top)  * (H / rect.height);
-        // Focal-point: world point under cursor stays fixed after zoom
         const wx = (lx - W / 2 - panRef.current.x) / oldZoom;
         const wy = (ly - H / 2 - panRef.current.y) / oldZoom;
-        const np = clampPan(
-          lx - W / 2 - wx * newZoom,
-          ly - H / 2 - wy * newZoom
-        );
-        zoomRef.current = newZoom;
-        panRef.current  = np;
-        setZoom(newZoom);
-        setPan(np);
+        const np = clampPan(lx - W / 2 - wx * newZoom, ly - H / 2 - wy * newZoom);
+        zoomRef.current = newZoom; panRef.current = np; setZoom(newZoom); setPan(np);
       } else {
-        // Two-finger scroll -> pan
-        const dx = -e.deltaX * svgScale;
-        const dy = -e.deltaY * svgScale;
+        const dx = -e.deltaX * svgScale, dy = -e.deltaY * svgScale;
         const clamped = clampPan(panRef.current.x + dx, panRef.current.y + dy);
         panRef.current = clamped; setPan(clamped);
       }
@@ -820,24 +719,48 @@ export default function KnowledgeMap() {
     graphFocusedRef.current = true;
     if (dragRef.current) return;
     (e.currentTarget as Element).setPointerCapture(e.pointerId);
-    panStartRef.current = { mx: e.clientX, my: e.clientY, px: panRef.current.x, py: panRef.current.y };
-    setPanning(true);
+    activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (activePointersRef.current.size >= 2) {
+      // Two fingers down: start pinch, cancel pan
+      const pts  = Array.from(activePointersRef.current.values());
+      const dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+      pinchStartRef.current = { dist, zoom: zoomRef.current, cx: (pts[0].x + pts[1].x) / 2, cy: (pts[0].y + pts[1].y) / 2 };
+      panStartRef.current = null;
+      setPanning(false);
+    } else {
+      // Single finger: pan
+      pinchStartRef.current = null;
+      panStartRef.current = { mx: e.clientX, my: e.clientY, px: panRef.current.x, py: panRef.current.y };
+      setPanning(true);
+    }
   };
 
   const onSvgPointerMove = (e: React.PointerEvent) => {
-    // Track screen-space position for the tooltip
     const svg = svgRef.current;
-    if (svg) {
-      const rect = svg.getBoundingClientRect();
-      setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-    }
+    if (svg) { const rect = svg.getBoundingClientRect(); setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top }); }
+    activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (dragRef.current) {
       const w = toWorld(e.clientX, e.clientY);
       const n = physRef.current.find(n => n.id === dragRef.current!.id)!;
       n.x = w.x - dragRef.current.ox; n.y = w.y - dragRef.current.oy; n.vx = 0; n.vy = 0;
+    } else if (activePointersRef.current.size >= 2 && pinchStartRef.current) {
+      // Pinch zoom
+      const pts     = Array.from(activePointersRef.current.values());
+      const dist    = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+      const factor  = dist / pinchStartRef.current.dist;
+      const newZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, pinchStartRef.current.zoom * factor));
+      const svgEl   = svgRef.current; if (!svgEl) return;
+      const rect    = svgEl.getBoundingClientRect();
+      const lx = (pinchStartRef.current.cx - rect.left) * (W / rect.width);
+      const ly = (pinchStartRef.current.cy - rect.top)  * (H / rect.height);
+      const oldZoom = pinchStartRef.current.zoom;
+      const wx = (lx - W / 2 - panRef.current.x) / oldZoom;
+      const wy = (ly - H / 2 - panRef.current.y) / oldZoom;
+      const np = clampPan(lx - W / 2 - wx * newZoom, ly - H / 2 - wy * newZoom);
+      zoomRef.current = newZoom; panRef.current = np; setZoom(newZoom); setPan(np);
     } else if (panStartRef.current) {
-      const svg = svgRef.current; if (!svg) return;
-      const rect = svg.getBoundingClientRect(), scaleX = W / rect.width;
+      const svgEl = svgRef.current; if (!svgEl) return;
+      const rect = svgEl.getBoundingClientRect(), scaleX = W / rect.width;
       const dx = (e.clientX - panStartRef.current.mx) * scaleX;
       const dy = (e.clientY - panStartRef.current.my) * scaleX;
       const clamped = clampPan(panStartRef.current.px + dx, panStartRef.current.py + dy);
@@ -845,7 +768,14 @@ export default function KnowledgeMap() {
     }
   };
 
-  const onSvgPointerUp = () => {
+  const onSvgPointerUp = (e: React.PointerEvent) => {
+    activePointersRef.current.delete(e.pointerId);
+    if (activePointersRef.current.size < 2) pinchStartRef.current = null;
+    if (activePointersRef.current.size === 0) { dragRef.current = null; panStartRef.current = null; setDragging(false); setPanning(false); }
+  };
+
+  const onSvgPointerLeave = () => {
+    activePointersRef.current.clear(); pinchStartRef.current = null;
     dragRef.current = null; panStartRef.current = null;
     setDragging(false); setPanning(false);
   };
@@ -870,34 +800,25 @@ export default function KnowledgeMap() {
   const focusNode = useCallback((id: string) => {
     const node = physRef.current.find(n => n.id === id);
     if (!node) return;
-    // Scroll graph into view first
     graphRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    // Then pan to center the node
     setTimeout(() => {
-      const z  = zoomRef.current;
+      const z = zoomRef.current;
       const np = { x: (W / 2 - node.x) * z, y: (H / 2 - node.y) * z };
-      panRef.current = np;
-      setPan(np);
-      setSelected(id);
+      panRef.current = np; setPan(np); setSelected(id);
     }, 300);
   }, []);
 
   const toggleGroup = (g: string) => {
-    setActiveGroups(prev => {
-      const next = new Set(prev);
-      if (next.has(g)) { if (next.size > 1) next.delete(g); } else next.add(g);
-      return next;
-    });
+    setActiveGroups(prev => { const next = new Set(prev); if (next.has(g)) { if (next.size > 1) next.delete(g); } else next.add(g); return next; });
     setSelected(null);
   };
 
-  const allGroupKeys   = Object.keys(GROUP_LABELS);
-  const allActive      = activeGroups.size === allGroupKeys.length;
-  const zT             = `translate(${W / 2 + pan.x},${H / 2 + pan.y}) scale(${zoom}) translate(${-W / 2},${-H / 2})`;
+  const allGroupKeys    = Object.keys(GROUP_LABELS);
+  const allActive       = activeGroups.size === allGroupKeys.length;
+  const zT              = `translate(${W / 2 + pan.x},${H / 2 + pan.y}) scale(${zoom}) translate(${-W / 2},${-H / 2})`;
   const selectedConcept = ALL_CONCEPTS.find(c => c.id === selected) ?? null;
   const btnBase = "w-7 h-7 flex items-center justify-center rounded-lg text-xs font-bold cursor-pointer transition-all duration-150 border border-sky-200 dark:border-sky-700 bg-white/80 dark:bg-sky-900/80 backdrop-blur-sm text-sky-700 dark:text-sky-300 hover:border-sky-400 dark:hover:border-sky-500 hover:bg-white dark:hover:bg-sky-800 shadow-sm select-none";
 
-  // Shared star-map SVG content — used by both in-page and fullscreen
   const renderStarMap = (blobId: string) => (
     <>
       <defs>
@@ -924,15 +845,12 @@ export default function KnowledgeMap() {
           if (!grpNodes.length) return null;
           const col    = GROUP_COLORS[grp];
           const anchor = GROUP_ANCHORS[grp];
-          // Use anchor x for stable horizontal position; topY from settled nodes for vertical
           const topY   = Math.min(...grpNodes.map(c => (positions[c.id]?.y ?? c.y)));
           const lblX   = anchor.x;
           const lblY   = topY - 22 + (LABEL_Y_OFFSET[grp] ?? 0);
           return (
             <g key={'lbl-' + grp} style={{ pointerEvents: 'none', userSelect: 'none' }}>
-              <text x={lblX} y={lblY} textAnchor="middle"
-                fontSize="10" fontFamily="monospace" fontWeight="800" letterSpacing="0.2em"
-                fill={col.dot} opacity="0.7">
+              <text x={lblX} y={lblY} textAnchor="middle" fontSize="10" fontFamily="monospace" fontWeight="800" letterSpacing="0.2em" fill={col.dot} opacity="0.7">
                 {label.toUpperCase()}
               </text>
             </g>
@@ -965,7 +883,6 @@ export default function KnowledgeMap() {
           const brightness = 0.3 + (cardCount / MAX_CARD_COUNT) * 0.7;
           const baseR      = 3 + Math.round((cardCount / MAX_CARD_COUNT) * 8);
           const r          = isAct ? baseR + 5 : isConn ? baseR + 1 : baseR;
-          const showLabel  = isAct || isConn || !!(matchedIds && matchedIds.has(c.id));
           return (
             <g key={c.id} transform={'translate(' + pos.x + ',' + pos.y + ')'}
               style={{ opacity: nodeOpacity(c.id), cursor: 'pointer' }}
@@ -989,11 +906,9 @@ export default function KnowledgeMap() {
     </>
   );
 
-
   return (
     <div className="w-full space-y-4 pb-20">
 
-      {/* Search */}
       <div className="relative w-full max-w-xs">
         <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-sky-400" width="13" height="13" viewBox="0 0 13 13" fill="none">
           <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" strokeWidth="1.4" />
@@ -1008,7 +923,6 @@ export default function KnowledgeMap() {
         )}
       </div>
 
-      {/* Group filter pills */}
       <div className="flex flex-wrap gap-1.5">
         {allGroupKeys.map(key => {
           const active = activeGroups.has(key);
@@ -1028,23 +942,17 @@ export default function KnowledgeMap() {
         </button>
       </div>
 
-      {/* Edge legend */}
       <div style={{ display: 'flex', flexWrap: 'wrap', columnGap: '32px', rowGap: '4px', fontFamily: 'monospace', textTransform: 'uppercase', fontSize: '9px', letterSpacing: '0.12em', color: 'rgba(14,165,233,0.35)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <svg width="22" height="8" viewBox="0 0 22 8">
-            <line x1="1" y1="4" x2="21" y2="4" stroke="#38bdf8" strokeWidth="0.9" />
-          </svg>
+          <svg width="22" height="8" viewBox="0 0 22 8"><line x1="1" y1="4" x2="21" y2="4" stroke="#38bdf8" strokeWidth="0.9" /></svg>
           within group
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <svg width="22" height="8" viewBox="0 0 22 8">
-            <line x1="1" y1="4" x2="21" y2="4" stroke="#7dd3fc" strokeWidth="0.6" strokeDasharray="2 5" />
-          </svg>
+          <svg width="22" height="8" viewBox="0 0 22 8"><line x1="1" y1="4" x2="21" y2="4" stroke="#7dd3fc" strokeWidth="0.6" strokeDasharray="2 5" /></svg>
           cross group
         </div>
       </div>
 
-      {/* Graph canvas — hidden when fullscreen so svgRef isn't duplicated */}
       {!fullscreen && (
         <div ref={graphRef} className="relative w-full rounded-2xl border border-sky-900/40 overflow-hidden" style={{ background: '#020818' }}>
           <div className="absolute top-3 right-3 z-10 hidden md:flex flex-col gap-1">
@@ -1067,7 +975,7 @@ export default function KnowledgeMap() {
           <svg ref={svgRef} viewBox={'0 0 ' + W + ' ' + H} className="w-full h-auto block"
             style={{ cursor: dragging || panning ? 'grabbing' : 'grab', touchAction: 'none' }}
             onPointerDown={onSvgPointerDown} onPointerMove={onSvgPointerMove}
-            onPointerUp={onSvgPointerUp} onPointerLeave={onSvgPointerUp}>
+            onPointerUp={onSvgPointerUp} onPointerLeave={onSvgPointerLeave}>
             {renderStarMap('km-blob')}
           </svg>
           {selectedConcept && (
@@ -1080,18 +988,14 @@ export default function KnowledgeMap() {
               pinch to zoom · two-finger scroll to pan · click a star to open cards · esc to close
             </div>
           )}
-
-          {/* Cursor-anchored tooltip — screen space, zero collision with nodes */}
           {hovered && (() => {
             const concept = ALL_CONCEPTS.find(c => c.id === hovered);
             if (!concept) return null;
-            const col      = GROUP_COLORS[concept.group] ?? GROUP_COLORS['hardware'];
+            const col = GROUP_COLORS[concept.group] ?? GROUP_COLORS['hardware'];
             const cardCount = ALL_CARDS[concept.id]?.length ?? 0;
-            const tipX = mousePos.x + 14;
-            const tipY = mousePos.y - 10;
             return (
               <div className="absolute pointer-events-none z-20 select-none"
-                style={{ left: tipX, top: tipY, transform: 'translateY(-100%)' }}>
+                style={{ left: mousePos.x + 14, top: mousePos.y - 10, transform: 'translateY(-100%)' }}>
                 <div className="rounded-lg px-2.5 py-1.5 text-[11px] font-mono font-semibold shadow-lg"
                   style={{ background: '#0a0f1e', border: '1px solid ' + col.dot + '60', color: col.dot, maxWidth: '220px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {concept.label}
@@ -1103,7 +1007,6 @@ export default function KnowledgeMap() {
         </div>
       )}
 
-      {/* Mobile controls */}
       <div className="md:hidden flex items-center justify-center gap-2 pt-1">
         <button onClick={() => doSetZoom(z => Math.min(ZOOM_MAX, +(z + ZOOM_STEP).toFixed(2)))} className={btnBase}>+</button>
         <button onClick={doFit} className={btnBase + ' px-3'} style={{ width: 'auto', fontSize: '9px' }}>FIT</button>
@@ -1113,16 +1016,15 @@ export default function KnowledgeMap() {
       {selectedConcept && <div className="md:hidden mt-1"><DetailPanel concept={selectedConcept} onClose={() => setSelected(null)} /></div>}
       {!selectedConcept && (
         <div className="md:hidden font-mono select-none text-center pt-1" style={{ fontSize: "9px", color: "rgb(14 165 233 / 0.25)" }}>
-          tap a node to open cards \xb7 pinch or use buttons to zoom
+          <div>tap a node to open cards</div>
+          <div>pinch or use buttons to zoom</div>
         </div>
       )}
 
-      {/* Stats bars */}
       <div className="border-t border-sky-100 dark:border-sky-900 pt-4">
         <StatsBar onFocusNode={focusNode} selectedId={selected} />
       </div>
 
-      {/* Fullscreen portal — mounts directly on document.body, above ALL stacking contexts */}
       {fullscreen && typeof document !== 'undefined' && createPortal(
         <div style={{ position: 'fixed', inset: 0, zIndex: 99999, background: '#020818', display: 'flex', flexDirection: 'column' }}>
           <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 100000, display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -1141,7 +1043,7 @@ export default function KnowledgeMap() {
           </div>
           <svg ref={svgRef} viewBox={'0 0 ' + W + ' ' + H} style={{ width: '100%', height: '100%', display: 'block', cursor: dragging || panning ? 'grabbing' : 'grab', touchAction: 'none' }}
             onPointerDown={onSvgPointerDown} onPointerMove={onSvgPointerMove}
-            onPointerUp={onSvgPointerUp} onPointerLeave={onSvgPointerUp}>
+            onPointerUp={onSvgPointerUp} onPointerLeave={onSvgPointerLeave}>
             {renderStarMap('km-blob-fs')}
           </svg>
           {selectedConcept && (

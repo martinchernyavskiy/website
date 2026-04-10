@@ -1,12 +1,311 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+
+interface Project {
+  name: string;
+  tagline: string;
+  description: string;
+  metrics?: string[];
+  stack: string[];
+  github: string;
+  demo?: string;
+  status: 'live' | 'in-progress' | 'planned';
+  accent: string;
+}
+
+const projects: Project[] = [
+  {
+    name: 'StratumLSM',
+    tagline: 'Write-Optimized Storage Engine',
+    description: 'A Log-Structured Merge-Tree storage engine in C++ with a SkipList-based MemTable, CRC32-protected Write-Ahead Log for crash recovery, and size-tiered compaction. Integrates with the Linux perf subsystem to quantify write amplification and hardware-level execution metrics.',
+    metrics: ['47,100 ops/sec sequential writes', '230,800 ops/sec random reads', '~3.0x write amplification'],
+    stack: ['C++', 'CMake', 'Linux perf', 'CRC32', 'SkipList', 'MVCC'],
+    github: 'https://github.com/martinchernyavskiy/StratumLSM',
+    status: 'live',
+    accent: '#0ea5e9',
+  },
+  {
+    name: 'VectorBench',
+    tagline: 'Columnar Execution Engine',
+    description: 'Benchmarks SIMD-vectorized operators against scalar tuple-at-a-time processing. Combines AVX-512 16-wide parallelism, Apache Arrow-inspired memory layouts, and dictionary encoding to measure the throughput ceiling of columnar query execution.',
+    metrics: ['15.5x speedup with dictionary encoding', '12.8x speedup with AVX-512 SIMD', '2.7x speedup with Arrow layout'],
+    stack: ['C++', 'AVX-512', 'Apache Arrow', 'CMake', 'Linux perf'],
+    github: 'https://github.com/martinchernyavskiy/VectorBench',
+    status: 'live',
+    accent: '#38bdf8',
+  },
+  {
+    name: 'PageForge',
+    tagline: 'Persistent Storage Engine',
+    description: 'A C++ storage manager combining a buffer pool with Clock replacement, a disk-resident B+ Tree index, and a slotted-page heap file for variable-length records. Uses a custom PageGuard RAII wrapper to ensure pin safety across exceptions and automatic dirty-page flushing on eviction.',
+    metrics: ['O(log n) search and insert via B+ Tree', 'Zero external fragmentation via slotted pages', 'O(1) Clock eviction approximating LRU'],
+    stack: ['C++', 'CMake', 'RAII', 'B+ Tree', 'Buffer Pool'],
+    github: 'https://github.com/martinchernyavskiy/PageForge',
+    status: 'live',
+    accent: '#818cf8',
+  },
+  {
+    name: 'QueryScope',
+    tagline: 'SQL Query Optimizer & Plan Visualizer',
+    description: 'Rule-based SQL optimizer using sqlglot to parse queries into ASTs and apply composable rewrite passes: predicate pushdown, projection pruning, and constant folding in a fixed-point iteration loop. Paired with a React frontend that renders before/after logical plan trees as annotated node graphs with per-pass telemetry.',
+    metrics: ['29.7% AST complexity reduction', '91 to 64 node reduction on complex query', 'TPC-H semantic correctness validated'],
+    stack: ['Python', 'sqlglot', 'FastAPI', 'React', 'PostgreSQL', 'TPC-H'],
+    github: 'https://github.com/martinchernyavskiy/QueryScope',
+    status: 'live',
+    accent: '#34d399',
+  },
+  {
+    name: 'C++ Conductor',
+    tagline: 'Fixed-Size Thread Pool Library',
+    description: 'A high-performance thread pool library built from scratch in C++ using mutexes and condition variables for thread-safe task queuing. Workers pick up enqueued callables and return std::future handles, making it straightforward to parallelize workloads without managing threads directly. Validated with Google Test.',
+    metrics: ['std::future-based async results', 'Zero-overhead task submission', 'Concurrent correctness via GTest'],
+    stack: ['C++11', 'CMake', 'GTest', 'std::mutex', 'std::future'],
+    github: 'https://github.com/martinchernyavskiy/cpp-conductor',
+    status: 'live',
+    accent: '#fb923c',
+  },
+  {
+    name: 'LocalDev CLI',
+    tagline: 'Docker Environment Manager',
+    description: 'A Go CLI tool that parses YAML service definitions and drives the Docker Engine API to spin up or tear down local development environments in a single command. Handles image pulls with progress feedback, port and environment variable mapping, and a --force flag to automatically resolve container name conflicts.',
+    metrics: ['Single-command multi-service teardown', 'Real-time image pull progress', '--force flag for conflict resolution'],
+    stack: ['Go', 'Docker Engine API', 'YAML', 'CLI'],
+    github: 'https://github.com/martinchernyavskiy/localdev-cli',
+    status: 'live',
+    accent: '#a78bfa',
+  },
+  {
+    name: 'CampusDine',
+    tagline: 'AI-Powered Dining Hall Meal Planner',
+    description: 'A web app that scrapes local campus dining hall menus daily and uses AI to construct an optimal meal plan based on your nutrition goals and dietary preferences. Integrates messaging and email to send your personalized plan each morning, with a conversational AI interface for adjusting macros, swapping meals, or asking nutrition questions.',
+    metrics: ['Daily menu sync from dining hall sources', 'AI-optimized meal plans per nutrition targets', 'Email + message delivery of daily plan'],
+    stack: ['React', 'Python', 'FastAPI', 'Claude API', 'PostgreSQL', 'SMTP'],
+    github: 'https://github.com/martinchernyavskiy/campusdine',
+    status: 'planned',
+    accent: '#f472b6',
+  },
+  {
+    name: 'QueryForge',
+    tagline: 'Vectorized Physical Query Executor',
+    description: 'A physical query execution engine that closes the loop across StratumLSM, PageForge, and QueryScope. Takes logical plans from QueryScope and executes them against the PageForge buffer pool using vectorized operators: hash join, sort-merge join, aggregation, and selection, each with explicit memory budgets. The goal is a full database stack built entirely from scratch.',
+    metrics: ['Hash join, sort-merge join, aggregation operators', 'Memory-bounded vectorized execution', 'End-to-end: storage through query results'],
+    stack: ['C++17', 'CMake', 'PageForge', 'QueryScope', 'StratumLSM'],
+    github: 'https://github.com/martinchernyavskiy/queryforge',
+    status: 'planned',
+    accent: '#34d399',
+  },
+];
+
+const doneProjects    = projects.filter(p => p.status === 'live');
+const plannedProjects = projects.filter(p => p.status !== 'live');
+
+const statusLabel: Record<Project['status'], string> = {
+  live: 'Live',
+  'in-progress': 'In Progress',
+  planned: 'Planned',
+};
+const statusDot: Record<Project['status'], string> = {
+  live: 'bg-emerald-400',
+  'in-progress': 'bg-amber-400',
+  planned: 'bg-sky-400/40',
+};
 ---
 
 <BaseLayout title="Projects | Martin Chernyavskiy">
-  <div class="flex flex-col items-center justify-center py-20 text-center">
-    <h1 class="text-4xl font-extrabold text-sky-950 dark:text-sky-50 mb-4">Projects</h1>
-    <p class="text-sky-600 dark:text-sky-400 font-mono text-sm tracking-widest uppercase">
-      This page is currently under construction.
-    </p>
+  <div class="mt-10 space-y-10 relative z-10">
+
+    <div class="space-y-3 max-w-2xl">
+      <h1 class="text-4xl font-extrabold tracking-tight text-sky-950 dark:text-sky-50">
+        Projects
+      </h1>
+      <p class="text-lg text-sky-900/80 dark:text-sky-100/70 leading-relaxed">
+        A collection of projects I've built and am planning to build.
+      </p>
+    </div>
+
+    <section class="space-y-4 border-t border-sky-100 dark:border-sky-900 pt-8">
+      <h2 class="text-xs font-mono font-bold uppercase tracking-widest text-sky-500 dark:text-sky-400">Built</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {doneProjects.map((project) => (
+        <article
+          class="group relative rounded-2xl border border-sky-200 dark:border-sky-800 bg-white/60 dark:bg-sky-950/40 hover:border-sky-400 dark:hover:border-sky-600 hover:bg-white dark:hover:bg-sky-900/30 hover:shadow-xl hover:shadow-sky-500/5 transition-all duration-300 overflow-hidden"
+        >
+          <div
+            class="absolute left-0 top-[3px] bottom-[3px] w-[3px] rounded-full transition-opacity duration-300 opacity-70 group-hover:opacity-100"
+            style={`background: ${project.accent}`}
+          />
+
+          <div class="pl-6 pr-6 py-5">
+            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
+              <div class="min-w-0">
+                <div class="flex items-center gap-2.5 flex-wrap mb-1">
+                  <h2 class="text-lg font-extrabold tracking-tight text-sky-950 dark:text-sky-50 font-mono">
+                    {project.name}
+                  </h2>
+                  <span class="flex items-center gap-1.5 text-[9px] font-mono font-bold uppercase tracking-widest">
+                    <span class={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusDot[project.status]}`} />
+                    <span class="text-sky-500 dark:text-sky-400">{statusLabel[project.status]}</span>
+                  </span>
+                </div>
+                <p class="text-[11px] font-mono font-bold uppercase tracking-widest" style={`color: ${project.accent}`}>
+                  {project.tagline}
+                </p>
+              </div>
+
+              <div class="flex gap-2 flex-shrink-0">
+                {project.status !== 'planned' && (
+                <a
+                  href={project.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-widest border border-sky-200 dark:border-sky-800 text-sky-700 dark:text-sky-300 hover:border-sky-400 dark:hover:border-sky-500 hover:text-sky-900 dark:hover:text-sky-100 transition-all duration-200"
+                >
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+                  </svg>
+                  GitHub
+                </a>
+                )}
+                {project.demo && (
+                  <a
+                    href={project.demo}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-widest border transition-all duration-200"
+                    style={`border-color: ${project.accent}60; color: ${project.accent}; background: ${project.accent}10;`}
+                  >
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                      <polyline points="15 3 21 3 21 9"/>
+                      <line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                    Demo
+                  </a>
+                )}
+              </div>
+            </div>
+
+            <p class="text-sm text-sky-800 dark:text-sky-200/80 leading-relaxed mb-4">
+              {project.description}
+            </p>
+
+            {project.metrics && project.metrics.length > 0 && (
+              <div class="flex flex-wrap gap-2 mb-4">
+                {project.metrics.map((m) => (
+                  <span
+                    class="text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg"
+                    style={`background: ${project.accent}12; border: 1px solid ${project.accent}40; color: ${project.accent};`}
+                  >
+                    {m}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div class="flex flex-wrap gap-1.5">
+              {project.stack.map((tech) => (
+                <span class="text-[9px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-sky-200 dark:border-sky-800 text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/30">
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </div>
+        </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="space-y-4 border-t border-sky-100 dark:border-sky-900 pt-8">
+      <h2 class="text-xs font-mono font-bold uppercase tracking-widest text-sky-500 dark:text-sky-400">Planned</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {plannedProjects.map((project) => (
+        <article
+          class="group relative rounded-2xl border border-sky-200 dark:border-sky-800 bg-white/60 dark:bg-sky-950/40 hover:border-sky-400 dark:hover:border-sky-600 hover:bg-white dark:hover:bg-sky-900/30 hover:shadow-xl hover:shadow-sky-500/5 transition-all duration-300 overflow-hidden"
+        >
+          <div
+            class="absolute left-0 top-[3px] bottom-[3px] w-[3px] rounded-full transition-opacity duration-300 opacity-70 group-hover:opacity-100"
+            style={`background: ${project.accent}`}
+          />
+
+          <div class="pl-6 pr-6 py-5">
+            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
+              <div class="min-w-0">
+                <div class="flex items-center gap-2.5 flex-wrap mb-1">
+                  <h2 class="text-lg font-extrabold tracking-tight text-sky-950 dark:text-sky-50 font-mono">
+                    {project.name}
+                  </h2>
+                  <span class="flex items-center gap-1.5 text-[9px] font-mono font-bold uppercase tracking-widest">
+                    <span class={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusDot[project.status]}`} />
+                    <span class="text-sky-500 dark:text-sky-400">{statusLabel[project.status]}</span>
+                  </span>
+                </div>
+                <p class="text-[11px] font-mono font-bold uppercase tracking-widest" style={`color: ${project.accent}`}>
+                  {project.tagline}
+                </p>
+              </div>
+
+              <div class="flex gap-2 flex-shrink-0">
+                {project.status !== 'planned' && (
+                <a
+                  href={project.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-widest border border-sky-200 dark:border-sky-800 text-sky-700 dark:text-sky-300 hover:border-sky-400 dark:hover:border-sky-500 hover:text-sky-900 dark:hover:text-sky-100 transition-all duration-200"
+                >
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+                  </svg>
+                  GitHub
+                </a>
+                )}
+                {project.demo && (
+                  <a
+                    href={project.demo}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-widest border transition-all duration-200"
+                    style={`border-color: ${project.accent}60; color: ${project.accent}; background: ${project.accent}10;`}
+                  >
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                      <polyline points="15 3 21 3 21 9"/>
+                      <line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                    Demo
+                  </a>
+                )}
+              </div>
+            </div>
+
+            <p class="text-sm text-sky-800 dark:text-sky-200/80 leading-relaxed mb-4">
+              {project.description}
+            </p>
+
+            {project.metrics && project.metrics.length > 0 && (
+              <div class="flex flex-wrap gap-2 mb-4">
+                {project.metrics.map((m) => (
+                  <span
+                    class="text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg"
+                    style={`background: ${project.accent}12; border: 1px solid ${project.accent}40; color: ${project.accent};`}
+                  >
+                    {m}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div class="flex flex-wrap gap-1.5">
+              {project.stack.map((tech) => (
+                <span class="text-[9px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-sky-200 dark:border-sky-800 text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/30">
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </div>
+        </article>
+        ))}
+      </div>
+    </section>
+
   </div>
 </BaseLayout>

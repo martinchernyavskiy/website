@@ -17,7 +17,7 @@ const { title = "Martin Chernyavskiy | Systems & Database Engineer" } = Astro.pr
     
     <meta name="description" content="Computer Science student at UW-Madison. Specialized in database internals, distributed systems, and hardware-level performance optimization." />
     <meta property="og:title" content="Martin Chernyavskiy | Systems & Database Engineer" />
-    <meta property="og:description" content="CS sophomore at UW-Madison focusing on backend infrastructure and high-performance execution engines." />
+    <meta property="og:description" content="CS student at UW-Madison focusing on backend infrastructure and high-performance execution engines." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://martinchernyavskiy.com" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -83,7 +83,7 @@ const { title = "Martin Chernyavskiy | Systems & Database Engineer" } = Astro.pr
         </a>
 
         <nav class="hidden md:flex items-center gap-1 text-sm font-medium text-sky-700 dark:text-sky-300 whitespace-nowrap">
-          {['Experience', 'Blog', 'Bookshelf', 'Courses', 'Knowledge Map'].map((label) => (
+          {['Experience', 'Projects', 'Bookshelf', 'Courses', 'Knowledge Map'].map((label) => (
             <a href={label === 'Experience' ? '/#experience' : label === 'Courses' ? '/classes' : label === 'Knowledge Map' ? '/knowledge-map' : `/${label.toLowerCase()}`} class="px-3 py-2 rounded-lg transition-all duration-300 hover:bg-sky-500/10 hover:text-sky-600 dark:hover:bg-sky-100/10 dark:hover:text-sky-100">
               {label}
             </a>
@@ -105,7 +105,7 @@ const { title = "Martin Chernyavskiy | Systems & Database Engineer" } = Astro.pr
 
       <div id="mobile-menu" class="md:hidden border-t border-sky-200 dark:border-sky-800 bg-sky-50/95 dark:bg-sky-950/95 backdrop-blur-xl">
         <div class="flex flex-col p-6 space-y-2">
-          {['Experience', 'Blog', 'Bookshelf', 'Courses', 'Knowledge Map'].map((label) => (
+          {['Experience', 'Projects', 'Bookshelf', 'Courses', 'Knowledge Map'].map((label) => (
             <a href={label === 'Experience' ? '/#experience' : label === 'Courses' ? '/classes' : label === 'Knowledge Map' ? '/knowledge-map' : `/${label.toLowerCase()}`} class="px-4 py-3 rounded-xl text-lg text-sky-900 dark:text-sky-100 font-bold hover:bg-sky-500/10 transition-colors">
               {label}
             </a>

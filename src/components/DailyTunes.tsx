@@ -6,24 +6,43 @@ interface Track {
   albumArt: string;
   isPlaying: boolean;
 }
+const STORAGE_KEY = 'dailytunes_cache';
+
+function loadCached(): Track[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as Track[];
+    return parsed.map(t => ({ ...t, isPlaying: false }));
+  } catch { return []; }
+}
+
+function saveCached(tracks: Track[]) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tracks)); } catch {}
+}
+
 export default function DailyTunes() {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
-
-  const markLoaded = (src: string) =>
-    setLoadedImages(prev => { const next = new Set(prev); next.add(src); return next; });
-
   useEffect(() => {
+    const cached = loadCached();
+    if (cached.length > 0) { setTracks(cached); setLoading(false); }
+
     const fetchTunes = async () => {
       try {
         const res = await fetch(`/api/spotify.json`);
         const data = await res.json();
-        if (data.tracks) {
+        if (data.tracks && data.tracks.length > 0) {
           setTracks(data.tracks);
+          saveCached(data.tracks);
+        } else {
+          const fallback = loadCached();
+          if (fallback.length > 0) setTracks(fallback);
         }
       } catch (err) {
         console.error("Spotify fetch error:", err);
+        const fallback = loadCached();
+        if (fallback.length > 0) setTracks(fallback);
       } finally {
         setLoading(false);
       }
@@ -73,20 +92,18 @@ export default function DailyTunes() {
                 </span>
               ) : index + 1}
             </div>
-            <div className="w-11 h-11 flex-shrink-0 relative rounded-md overflow-hidden">
-              <div className={`absolute inset-0 bg-sky-100 dark:bg-sky-900/30 rounded-md transition-opacity duration-500 ${loadedImages.has(track.albumArt) ? 'opacity-0' : 'opacity-100'}`} />
-              <img
-                src={track.albumArt}
-                alt=""
-                onLoad={() => markLoaded(track.albumArt)}
-                className={`w-full h-full object-cover shadow-sm group-hover:shadow-md transition-all duration-500 ${loadedImages.has(track.albumArt) ? 'opacity-100' : 'opacity-0'}`}
+            <div className="w-11 h-11 flex-shrink-0 relative">
+              <img 
+                src={track.albumArt} 
+                alt={track.title} 
+                className="w-full h-full rounded-md object-cover shadow-sm group-hover:shadow-md transition-shadow"
               />
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-[15px] font-bold text-sky-900 dark:text-sky-100 truncate group-hover:text-sky-600 dark:group-hover:text-sky-400">
                 {track.title}
               </span>
-              <span className="text-[11.5px] text-sky-600 dark:text-sky-400/60 truncate italic">
+              <span className="text-[11.5px] text-sky-500/80 dark:text-sky-400/60 truncate italic">
                 {track.artist}
               </span>
             </div>
