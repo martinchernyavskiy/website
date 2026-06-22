@@ -102,6 +102,7 @@ const REPULSION = 11000; const SPRING_K = 0.028; const SPRING_LEN = 220;
 const DAMPING = 0.88; const CENTER_K = 0.004; const BOUND_PAD = 60; const BOUND_K = 0.18;
 const ZOOM_MIN = 0.4; const ZOOM_MAX = 2.5; const ZOOM_STEP = 0.3;
 const PAN_LIMIT = 350;
+const ENERGY_THRESHOLD = 0.5;
 
 function hexPoints(r: number): string {
   return Array.from({ length: 6 }, (_, i) => {
@@ -207,7 +208,11 @@ export default function CourseGraph() {
   const panRef           = useRef({ x: 0, y: 0 });
   const zoomRef          = useRef(1.0);
   const svgRef           = useRef<SVGSVGElement>(null);
+  const wrapRef          = useRef<HTMLDivElement>(null);
+  const graphFocusedRef  = useRef(false);
   const rafRef           = useRef<number>(0);
+  const settledRef       = useRef(false);
+  const resumeSimRef     = useRef<(() => void) | null>(null);
 
   const clampPan = (x: number, y: number) => {
     const limit = PAN_LIMIT * zoomRef.current;
@@ -250,6 +255,7 @@ export default function CourseGraph() {
         forces[i].fx += (cx - ns[i].x) * CENTER_K;
         forces[i].fy += (cy - ns[i].y) * CENTER_K;
       }
+      let energy = 0;
       for (let i = 0; i < ns.length; i++) {
         const n = ns[i];
         if (!active.has(n.id)) continue;
@@ -260,10 +266,16 @@ export default function CourseGraph() {
         if (n.y < BOUND_PAD)     n.vy += BOUND_K * (BOUND_PAD - n.y);
         if (n.y > H - BOUND_PAD) n.vy += BOUND_K * (H - BOUND_PAD - n.y);
         n.x += n.vx; n.y += n.vy;
+        energy += Math.abs(n.vx) + Math.abs(n.vy);
       }
       setPositions(Object.fromEntries(ns.map(n => [n.id, { x: n.x, y: n.y }])));
+      // Stop animating once the layout is at rest, instead of re-rendering forever.
+      // A node drag or a planned-toggle re-run resumes the loop.
+      if (!dragRef.current && energy / (active.size || 1) < ENERGY_THRESHOLD) { settledRef.current = true; return; }
       rafRef.current = requestAnimationFrame(tick);
     };
+    settledRef.current = false;
+    resumeSimRef.current = tick;
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
   }, [showPlanned]);
@@ -274,9 +286,22 @@ export default function CourseGraph() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // Release wheel/scroll capture when the user clicks outside the graph card.
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      const w = wrapRef.current;
+      if (w && !w.contains(e.target as Node)) graphFocusedRef.current = false;
+    };
+    document.addEventListener('click', onDocClick, true);
+    return () => document.removeEventListener('click', onDocClick, true);
+  }, []);
+
   useEffect(() => {
     const el = svgRef.current; if (!el) return;
     const onWheel = (e: WheelEvent) => {
+      // Only capture the wheel when the graph is active (clicked into) — otherwise
+      // let the event through so the page scrolls natively (incl. Safari).
+      if (!graphFocusedRef.current) return;
       e.preventDefault(); e.stopPropagation();
       const svg = svgRef.current; if (!svg) return;
       const rect    = svg.getBoundingClientRect();
@@ -318,10 +343,13 @@ export default function CourseGraph() {
     const n = physRef.current.find(n => n.id === id)!;
     dragRef.current = { id, ox: w.x - n.x, oy: w.y - n.y };
     setDragging(true);
+    if (settledRef.current) { settledRef.current = false; cancelAnimationFrame(rafRef.current); resumeSimRef.current?.(); }
+    graphFocusedRef.current = true;
   };
 
   const onSvgPointerDown = (e: React.PointerEvent) => {
     if (dragRef.current) return;
+    graphFocusedRef.current = true;
     (e.currentTarget as Element).setPointerCapture(e.pointerId);
     activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (activePointersRef.current.size >= 2) {
@@ -449,7 +477,7 @@ export default function CourseGraph() {
         </button>
       </div>
 
-      <div className="relative w-full rounded-2xl border border-sky-200 dark:border-sky-800 overflow-hidden">
+      <div ref={wrapRef} className="relative w-full rounded-2xl border border-sky-200 dark:border-sky-800 overflow-hidden">
         <div className="absolute top-3 right-3 z-10 hidden md:flex flex-col gap-1">
           <button onClick={() => doSetZoom(z => Math.min(ZOOM_MAX, +(z + ZOOM_STEP).toFixed(2)))} className={btnBase} title="Zoom in">+</button>
           <button onClick={doFit} className={btnBase} title="Reset view" style={{ fontSize: '9px', letterSpacing: '0.05em' }}>FIT</button>

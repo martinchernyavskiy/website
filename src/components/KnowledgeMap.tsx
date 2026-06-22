@@ -131,6 +131,8 @@ const ALL_CONCEPTS: Concept[] = [
   { id: "logic-ai", label: "Propositional & First-Order Logic", courses: ["CS 540"], group: "ai", x: 516.4, y: 561.6 },
 ];
 
+const CONCEPT_BY_ID = new Map(ALL_CONCEPTS.map(c => [c.id, c]));
+
 const ALL_EDGES: KMEdge[] = [
   { from: "binary-info", to: "logic-gates", type: "prerequisite" },
   { from: "logic-gates", to: "logic-functions", type: "prerequisite" },
@@ -534,6 +536,7 @@ export default function KnowledgeMap() {
   const graphRef    = useRef<HTMLDivElement>(null);
   const rafRef      = useRef<number>(0);
   const settledRef  = useRef(false);
+  const resumeSimRef = useRef<(() => void) | null>(null);
   const nodeIdxMap  = useRef(new Map(physRef.current.map((n, i) => [n.id, i])));
   const graphFocusedRef = useRef(false);
   const selectedRef     = useRef<string | null>(null);
@@ -564,7 +567,7 @@ export default function KnowledgeMap() {
 
     ns.forEach(n => {
       if (!visibleIds.has(n.id)) return;
-      const grp    = ALL_CONCEPTS.find(c => c.id === n.id)?.group;
+      const grp    = CONCEPT_BY_ID.get(n.id)?.group;
       const anchor = grp ? GROUP_ANCHORS[grp] : { x: W / 2, y: H / 2 };
       if (anchor) { n.x = anchor.x + (n.x - W / 2) * 0.15; n.y = anchor.y + (n.y - H / 2) * 0.15; n.vx = 0; n.vy = 0; }
     });
@@ -584,8 +587,8 @@ export default function KnowledgeMap() {
       for (const e of visEdges) {
         const fi = nodeIdx.get(e.from), ti = nodeIdx.get(e.to);
         if (fi === undefined || ti === undefined) continue;
-        const fromGrp = ALL_CONCEPTS.find(c => c.id === e.from)?.group;
-        const toGrp   = ALL_CONCEPTS.find(c => c.id === e.to)?.group;
+        const fromGrp = CONCEPT_BY_ID.get(e.from)?.group;
+        const toGrp   = CONCEPT_BY_ID.get(e.to)?.group;
         const springLen = fromGrp === toGrp ? SPRING_LEN_INTRA : SPRING_LEN_INTER;
         const dx = ns[ti].x - ns[fi].x, dy = ns[ti].y - ns[fi].y;
         const d  = Math.sqrt(dx * dx + dy * dy) || 1, f = SPRING_K * (d - springLen);
@@ -594,7 +597,7 @@ export default function KnowledgeMap() {
       }
       for (let i = 0; i < ns.length; i++) {
         if (!visibleIds.has(ns[i].id)) continue;
-        const grp    = ALL_CONCEPTS.find(c => c.id === ns[i].id)?.group;
+        const grp    = CONCEPT_BY_ID.get(ns[i].id)?.group;
         const anchor = grp ? GROUP_ANCHORS[grp] : { x: W / 2, y: H / 2 };
         if (anchor) { forces[i].fx += (anchor.x - ns[i].x) * ANCHOR_K; forces[i].fy += (anchor.y - ns[i].y) * ANCHOR_K; }
       }
@@ -620,14 +623,17 @@ export default function KnowledgeMap() {
       if (settledRef.current) return;
       const energy = runStep();
       setPositions(Object.fromEntries(ns.map(n => [n.id, { x: n.x, y: n.y }])));
-      if (energy < ENERGY_THRESHOLD) { settledRef.current = true; setSettled(true); return; }
+      if (!dragRef.current && energy < ENERGY_THRESHOLD) { settledRef.current = true; setSettled(true); return; }
       rafRef.current = requestAnimationFrame(tick);
     };
+    resumeSimRef.current = tick;
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
   }, [activeGroups]);
 
-  const restartSim = useCallback(() => { settledRef.current = false; setSettled(false); cancelAnimationFrame(rafRef.current); }, []);
+  // Resume the (possibly settled) simulation loop — used when a node is grabbed
+  // so dragging actually re-lays-out instead of freezing once settled.
+  const restartSim = useCallback(() => { settledRef.current = false; setSettled(false); cancelAnimationFrame(rafRef.current); resumeSimRef.current?.(); }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -639,7 +645,7 @@ export default function KnowledgeMap() {
 
   useEffect(() => {
     const keys = new Set<string>();
-    const PAN_SPEED = 8;
+    const PAN_SPEED = 24;
     let raf = 0;
     const loop = () => {
       let dx = 0, dy = 0;
@@ -678,6 +684,10 @@ export default function KnowledgeMap() {
   useEffect(() => {
     const el = svgRef.current; if (!el) return;
     const onWheel = (e: WheelEvent) => {
+      // Only capture the wheel when the graph is active (clicked into) — otherwise
+      // let the event through so the page scrolls natively (incl. Safari). Fullscreen
+      // always captures since there's no page to scroll behind it.
+      if (!graphFocusedRef.current && !fullscreen) return;
       e.preventDefault(); e.stopPropagation();
       const svg = svgRef.current; if (!svg) return;
       const rect = svg.getBoundingClientRect();
@@ -723,7 +733,7 @@ export default function KnowledgeMap() {
     const w = toWorld(e.clientX, e.clientY);
     const n = physRef.current.find(n => n.id === id)!;
     dragRef.current = { id, ox: w.x - n.x, oy: w.y - n.y };
-    setDragging(true); restartSim();
+    setDragging(true); restartSim(); graphFocusedRef.current = true;
   };
 
   const onSvgPointerDown = (e: React.PointerEvent) => {
@@ -870,8 +880,8 @@ export default function KnowledgeMap() {
         })}
         {ALL_EDGES.map((e, i) => {
           if (!visibleIds.has(e.from) || !visibleIds.has(e.to)) return null;
-          const fromGrp = ALL_CONCEPTS.find(c => c.id === e.from)?.group;
-          const toGrp   = ALL_CONCEPTS.find(c => c.id === e.to)?.group;
+          const fromGrp = CONCEPT_BY_ID.get(e.from)?.group;
+          const toGrp   = CONCEPT_BY_ID.get(e.to)?.group;
           const isIntra = fromGrp === toGrp;
           const fp = positions[e.from] ?? { x: 0, y: 0 }, tp = positions[e.to] ?? { x: 0, y: 0 };
           const dx = tp.x - fp.x, dy = tp.y - fp.y, d = Math.sqrt(dx * dx + dy * dy) || 1;
