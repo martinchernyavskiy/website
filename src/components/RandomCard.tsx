@@ -106,7 +106,7 @@ function CategorySelector({ onStart }: { onStart: (groups: Set<string>) => void 
   );
 }
 
-function CardViewer({ pool, onClose, onBack }: { pool: FlatCard[]; onClose: () => void; onBack: () => void }) {
+function CardViewer({ pool, onClose }: { pool: FlatCard[]; onClose: () => void }) {
   const [card,    setCard]    = useState<FlatCard>(() => pickRandom(pool));
   const [flipped, setFlipped] = useState(false);
   const historyRef = useRef<FlatCard[]>([]);
@@ -223,7 +223,6 @@ function CardViewer({ pool, onClose, onBack }: { pool: FlatCard[]; onClose: () =
 export default function RandomCard() {
   const [phase, setPhase] = useState<'closed' | 'select' | 'cards'>('closed');
   const [pool,  setPool]  = useState<FlatCard[]>([]);
-  const btnRef = useRef<HTMLButtonElement>(null);
 
   const handleStart = (groups: Set<string>) => {
     setPool(ALL_FLAT_CARDS.filter(c => groups.has(c.group)));
@@ -245,7 +244,6 @@ export default function RandomCard() {
     <>
 
       <button onClick={() => setPhase('select')}
-        ref={btnRef}
         className="rc-btn"
         style={{
           display: 'flex', alignItems: 'center', gap: '10px',
@@ -283,7 +281,7 @@ export default function RandomCard() {
             </div>
             {phase === 'select'
               ? <CategorySelector onStart={handleStart} />
-              : <CardViewer pool={pool} onClose={() => setPhase('closed')} onBack={() => setPhase('select')} />
+              : <CardViewer pool={pool} onClose={() => setPhase('closed')} />
             }
           </div>
         </div>

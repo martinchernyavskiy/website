@@ -92,12 +92,15 @@ export default function DailyTunes() {
                 </span>
               ) : index + 1}
             </div>
-            <div className="w-11 h-11 flex-shrink-0 relative">
-              <img 
-                src={track.albumArt} 
-                alt={track.title} 
-                className="w-full h-full rounded-md object-cover shadow-sm group-hover:shadow-md transition-shadow"
-              />
+            <div className="w-11 h-11 flex-shrink-0 relative rounded-md overflow-hidden bg-sky-100 dark:bg-sky-900/40">
+              {track.albumArt && (
+                <img
+                  src={track.albumArt}
+                  alt={track.title}
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  className="w-full h-full rounded-md object-cover shadow-sm group-hover:shadow-md transition-shadow"
+                />
+              )}
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-[15px] font-bold text-sky-900 dark:text-sky-100 truncate group-hover:text-sky-600 dark:group-hover:text-sky-400">
