@@ -6,39 +6,45 @@ import TechStack from '../components/TechStack';
 
 const experiences = [
   {
-    title: "Undergraduate Researcher, Sirius DB",
-    company: "UW–Madison Systems Lab (NVIDIA Collaborative)",
-    date: "Jan 2026 – Present",
-    description: "Developing C++ query execution pipelines for an NVIDIA-collaborative GPU-accelerated SQL engine, optimizing analytical workload performance using the RAPIDS ecosystem."
+    title: "Software Engineer Intern",
+    company: "iManage · Chicago, IL",
+    date: "Jun 2026 – Present",
+    description: "Java / Spring Boot backend: REST APIs that turn a manual multi-CLI Kubernetes deploy into one API-driven workflow, plus OAuth2/RBAC auth, CI speedups, and an Ebean→MyBatis persistence migration."
   },
   {
-    title: "Visiting Researcher, Distributed Data Systems",
+    title: "Undergraduate Researcher, Sirius DB",
+    company: "UW–Madison Systems Lab (NVIDIA collaborative)",
+    date: "Jan 2026 – May 2026",
+    description: "GPU-accelerated SQL engine in C++/CUDA: query operators over columnar data with NVIDIA libcudf and RMM."
+  },
+  {
+    title: "Distributed Systems Research Intern",
     company: "Peking University, Beijing",
     date: "Jun 2025 – Aug 2025",
-    description: "Engineered a C++ analytical storage prototype migrating from row-oriented to vectorized execution, achieving a 3x improvement in query scan performance on TPC-H benchmarks."
+    description: "Replicated key-value store in Go: Raft-style replication, with latency and failover optimization."
   },
   {
     title: "Undergraduate Researcher, Info Theory",
-    company: "UW–Madison Department of Mathematics",
+    company: "University of Wisconsin–Madison",
     date: "Aug 2024 – May 2025",
-    description: "Applied algorithmic information theory and Kolmogorov complexity to analyze theoretical compression limits relevant to database storage systems."
+    description: "Algorithmic information theory and Kolmogorov complexity: theoretical compression limits relevant to storage systems."
   },
   {
     title: "Software Engineer",
-    company: "Cardinal Trading Group",
+    company: "Cardinal Trading Group · Madison, WI",
     date: "Sep 2024 – Jan 2025",
-    description: "Built high-performance Python backtesting and ETL infrastructure for a quantitative trading organization, reducing execution time from 3 minutes to under 30 seconds."
+    description: "Python backtesting engine (per-strategy P&L, Sharpe, max drawdown) and a market-data ETL pipeline ingesting and caching 10+ years of daily prices for 1,000+ equities."
   }
 ];
 
 const contactLinks = [
-  { label: 'Email Me', href: 'mailto:martin.chernyavskiy@proton.me' },
+  { label: 'Email Me', href: 'mailto:martin.chernyavskiy@gmail.com' },
   { label: 'GitHub', href: 'https://github.com/martinchernyavskiy' },
   { label: 'LinkedIn', href: 'https://linkedin.com/in/martin-chernyavskiy' }
 ];
 ---
 
-<BaseLayout title="Martin Chernyavskiy | Systems & Database Engineer">
+<BaseLayout title="Martin Chernyavskiy | Systems & Data Engineer">
   
   <div class="mt-10 relative">
     
@@ -60,8 +66,9 @@ const contactLinks = [
       <div class="space-y-6 max-w-2xl">
         <p class="text-lg text-sky-900/90 dark:text-sky-100/90 leading-relaxed">
           I'm a <span class="font-bold text-sky-600 dark:text-sky-400">Computer Science student</span> at the University of Wisconsin–Madison.
-          My interests center on database internals, systems engineering, and backend infrastructure. I'm drawn to how high-performance data
-          systems are designed and built, from query execution and storage engines to the hardware-software interface that shapes their performance. 
+          My interests center on database internals, systems engineering, and backend infrastructure: how high-performance data systems are
+          designed and built, from query execution and storage engines to the hardware-software interface that shapes their performance.
+          I'm increasingly drawn to the data-platform side of that work, applying systems fundamentals to how data moves, scales, and powers real products.
         </p>
         
         <div class="flex flex-wrap gap-4 pt-0">
